@@ -1,0 +1,56 @@
+let fs = require("fs");
+import UserAuthData from './Interfaces/UserAuthData';
+let jwt:any = require('jsonwebtoken')
+let crypto = require("crypto");
+let sha256 = require("js-sha256");
+let privateKey = fs.readFileSync("./security/private.key", "utf8");
+let publicKey = fs.readFileSync("./security/public.key", "utf8");
+let RESPONSES:any = require('../functions/helperConstants').RESPONSES;
+import Result from './Result'
+import AuthResponse from './Interfaces/AuthResponse'
+import Error from './Interfaces/Error'
+import SResponse from './Interfaces/SResponse'
+import CategoryResult from './Interfaces/CategoryResult'
+import * as FS from "./settings/FieldSettings"
+
+import {longshot, firepool} from './config/dbConfig'
+import {ERROR_RESPONSE} from './helper/ErrorResponse'
+import {RESPONSE} from './helper/Response'
+import User from './User'
+import Symptom from './Symptom'
+import {RecordInterface, Symptoms} from  './Interfaces/Interfaces'
+import {SymptomState} from './SymptomState'
+import {Weights} from './Weights' 
+
+
+
+export default class Record{
+    private user:any = new Object()
+    private recordDateTime:Date = new Date();
+    private symptoms:any = {
+        fever:new Symptom({name: "Fever",weight: Weights.fever, state:SymptomState.NO}),
+        cold: new Symptom({name: "Cold",weight: Weights.cold, state:SymptomState.NO}),
+        cough: new Symptom({name:"Cough", weight: Weights.cough,state: SymptomState.NO}),
+        breathing: new Symptom({name:"Breathing Difficulty", weight:Weights.breathing, state:SymptomState.NO}),
+        bodyAche: new Symptom({name:"Body Ache",weight: Weights.bodyAche,state:SymptomState.NO})
+    };
+
+    
+  
+    constructor(init:RecordInterface){
+        try{
+            if(init){
+                if(User.isValidUI(init)){
+                    Object.assign(this, init)
+                }else{
+                    throw ERROR_RESPONSE.INVALID_REQUEST;
+                }
+            }
+        }catch(e){
+            console.log(e.stack)
+            throw ERROR_RESPONSE.INVALID_REQUEST;
+        }
+    }
+
+    
+}

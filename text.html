@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<script
+  src="https://code.jquery.com/jquery-3.4.1.min.js"
+  integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
+  crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>send sms</title>
+	
+</head>
+<body>
+	<center>
+		<h5>send texts</h5>
+		<form class="f">
+			phone number : <input name="pn" type="text" class="pn"><br>
+			message: <input type="text" name="message" class="message"><br>
+			<button class="btn">send</button>
+		</form>
+	</center>
+	<script type="text/javascript">
+	
+		$(document).ready(function(){
+			$('.btn').on('click', function(e){
+				// for(var i = 0; i < 5; i++){
+
+
+				axios.get('https://truffen.com/api/v2/sendSMS',{
+					params:{
+						pn: $(".pn").val(),
+						  message: $(".message").val()
+					}
+				}).then(function(r){
+					console.log(r)
+					alert("sent")
+				})
+			// }
+				
+			})
+		});
+	
+		</script>
+</body>
+</html>
