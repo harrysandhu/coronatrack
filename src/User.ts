@@ -55,13 +55,14 @@ export default class User {
         }
 
 
-    static async jwtVerifyUser(requestToken:string, publicKey:string): Promise<Result<UserAuthData, Error>>{
-        let userData:UserAuthData = <UserAuthData>{}
+    static async jwtVerifyUser(requestToken:string, publicKey:string): Promise<Result<any, Error>>{
+        let userData:any = {}
         try{
-             await jwt.verify(requestToken, publicKey, (error:any, authData:UserAuthData): any =>{
+             await jwt.verify(requestToken, publicKey, (error:any, authData:any): any =>{
                 
                 if(error) throw error;
                   userData = authData;
+                  console.log("userData at jwtverify: ", userData)
             })
         } catch(e){
             console.log(e);

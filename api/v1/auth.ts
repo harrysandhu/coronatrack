@@ -28,7 +28,7 @@ import SResponse from '../../src/Interfaces/SResponse'
 import {ERROR_RESPONSE} from '../../src/helper/ErrorResponse'
 import {RESPONSE} from '../../src/helper/Response'
 
-
+import UserAuthData from '../../src/Interfaces/UserAuthData';
 
 // /**DATABASE IMPORTS AND CONFIG */
 // import AWS from 'aws-sdk';
@@ -37,6 +37,25 @@ import {RESPONSE} from '../../src/helper/Response'
 
 // //to create a dynamoDB instance
 // //let dynamodb:any = new AWS.DynamoDB()
+
+
+
+
+auth.get("/user", verifyAuthToken, async (req:any, res:any) =>{
+   try{
+
+        let result = <Result<any, Error>>await User.jwtVerifyUser(req.token, publicKey);
+        if(result){
+            return res.json(result.get())
+        }
+    }catch(error){
+        return res.json(error.get())
+    }
+})
+
+
+
+
 
 auth.get(
     "/check",
