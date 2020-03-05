@@ -33,8 +33,7 @@ export default class User {
     static isValidUI(u: any): u is UserInterface {
 
         return u && u.d_id && u.u_id && u.age
-         && u.gender && u.location
-         && typeof(u.locationIsAllowed) === "boolean";
+         && u.gender && u.location;
     }
 
 
