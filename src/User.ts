@@ -82,7 +82,7 @@ export default class User {
             if(result.rows.length != 0){
                 console.log(result.rows[0])
                 // let newRec = new Record(result.rows[0]);
-                return Promise.resolve(Result.Success({record:result.rows[0],  isEmptyRecord:false}))
+                return Promise.resolve(Result.Success({record:new Record(result.rows[0]),  isEmptyRecord:false}))
             }else{
                 return Promise.resolve(Result.Success({record:Record.getEmptyRecord(this.d_id, "", this.location), isEmptyRecord:true }))
             }

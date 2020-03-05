@@ -29,11 +29,11 @@ export default class Record{
     private location:any = {};
     private record_datetime:Date = new Date();
     private symptoms:any = {
-        fever:new Symptom({name: "Fever",weight: Weights.fever, state:SymptomState.NO}),
         cold: new Symptom({name: "Cold",weight: Weights.cold, state:SymptomState.NO}),
         cough: new Symptom({name:"Cough", weight: Weights.cough,state: SymptomState.NO}),
-        breathing: new Symptom({name:"Breathing Difficulty", weight:Weights.breathing, state:SymptomState.NO}),
-        bodyAche: new Symptom({name:"Body Ache",weight: Weights.bodyAche,state:SymptomState.NO})
+        fever:new Symptom({name: "Fever",weight: Weights.fever, state:SymptomState.NO}),
+        bodyAche: new Symptom({name:"Body Ache",weight: Weights.bodyAche,state:SymptomState.NO}),
+        breathing: new Symptom({name:"Breathing Difficulty", weight:Weights.breathing, state:SymptomState.NO})
     };
     
     static getEmptyRecord(d_id:string, date:string, location:any): Record{
@@ -42,11 +42,11 @@ export default class Record{
             location:location,
             record_datetime:date,
             symptoms: {
-                fever:new Symptom({name: "Fever",weight: Weights.fever, state:SymptomState.NO}),
                 cold: new Symptom({name: "Cold",weight: Weights.cold, state:SymptomState.NO}),
                 cough: new Symptom({name:"Cough", weight: Weights.cough,state: SymptomState.NO}),
-                breathing: new Symptom({name:"Breathing Difficulty", weight:Weights.breathing, state:SymptomState.NO}),
-                bodyAche: new Symptom({name:"Body Ache",weight: Weights.bodyAche,state:SymptomState.NO})
+                fever:new Symptom({name: "Fever",weight: Weights.fever, state:SymptomState.NO}),
+                bodyAche: new Symptom({name:"Body Ache",weight: Weights.bodyAche,state:SymptomState.NO}),
+                breathing: new Symptom({name:"Breathing Difficulty", weight:Weights.breathing, state:SymptomState.NO})
             }
             })
     }
