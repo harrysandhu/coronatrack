@@ -186,7 +186,7 @@ export default class User {
         try{
             await client.query("BEGIN")
             let queryText = {
-                user: 'INSERT INTO _user(d_id, u_id, age, gender, location_is_allowed, location signup_datetime)' + ' '+
+                user: 'INSERT INTO _user(d_id, u_id, age, gender, location_is_allowed, location, signup_datetime)' + ' '+
                         'VALUES ($1, $2, $3, $4, $5, $6, NOW())'
             }
 
