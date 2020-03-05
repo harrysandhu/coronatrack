@@ -74,7 +74,69 @@ data.get(
     }
 )
 
+data.get(
+    "/user/record",
+    verifyAuthToken,
+      async (req:any, res:any) =>{
+          
+         try{
+              let ur = <Result<any, Error>>await User.jwtVerifyUser(req.token, publicKey);
+              console.log("UR: ", ur)
+                if(User.isValidUI(ur.get())){
+                    let u = ur.get()
+                    //user is verified
+                    console.log("userresult at /record: ", ur)
+                    let user = new User(u);
+                    let result = <Result<any, Error>>await user.getLatestRecord();
+                    return res.json(result.get())
+                }
+                throw Result.Failure(ERROR_RESPONSE.user.authException)
+        }catch(error){
+            return res.json(error.get())
+        }
+    }
+)
 
+
+/*
+    record > {
+        d_id
+        recordDateTime,
+        location
+        symptoms
+
+
+    }
+
+*/
+
+data.post(
+    "/record",
+    verifyAuthToken,
+      async (req:any, res:any) =>{
+        if(!req.body.record) return res.json(ERROR_RESPONSE.INVALID_REQUEST);
+        let record = {...req.body.record}
+        if(!Record.isValidRI(record)) return res.json(ERROR_RESPONSE.INVALID_REQUEST);
+        
+        try{
+              let ur = <Result<any, Error>>await User.jwtVerifyUser(req.token, publicKey);
+              console.log("UR: ", record)
+                if(User.isValidUI(ur.get())){
+                    let u = ur.get()
+                    //user is verified
+                    console.log("userresult at /record: ", ur)
+                    let user = new User(u);
+                    let result = <Result<any, Error>>await user.insertRecord(record)
+                    return res.json(result.get())
+                  
+                }
+                throw Result.Failure(ERROR_RESPONSE.user.authException)
+        }catch(error){
+            return res.json(error.get())
+        }
+    }
+)
 
 
 module.exports = data;
+
