@@ -16,7 +16,7 @@ import * as FS from "./settings/FieldSettings"
 import {longshot, firepool} from './config/dbConfig'
 import {ERROR_RESPONSE} from './helper/ErrorResponse'
 import {RESPONSE} from './helper/Response'
-
+import Record from './Record'
 import {UserInterface} from  './Interfaces/Interfaces'
 import {Gender} from './Gender'
 
@@ -29,12 +29,11 @@ export default class User {
     private gender:Gender = Gender.OTHER;
     private locationIsAllowed:boolean = false;
     private location:any = {};
-    private infectionProbability:number = 0;
 
     static isValidUI(u: any): u is UserInterface {
 
         return u && u.d_id && u.u_id && u.age
-         && u.gender 
+         && u.gender && u.location
          && typeof(u.locationIsAllowed) === "boolean";
     }
 
@@ -74,14 +73,48 @@ export default class User {
 
 
 
-/*
- private d_id:string = "";
-    private u_id:string = "";
-    private age:number = 0;
-    private gender:Gender = Gender.OTHER;
-    private locationIsAllowed:boolean = false;
-    private location:any = {};
-    private infectionProbability:number = 0;*/
+    async getRecordByDate(cdate:string): Promise<Result<any, Error>>{
+        const client = await longshot.connect();
+
+        try{
+            await client.query('BEGIN')
+            let queryText = 'SELECT * from _record WHERE d_id=$1 AND' + ' ' 
+                            +'DATE(record_datetime) = DATE($2) ORDER BY record_datetime DESC LIMIT 1';
+            let inserts = [this.d_id, cdate]
+            let result = await client.query(queryText, inserts)
+            if(result.rows.length != 0){
+                console.log(result.rows[0])
+                // let newRec = new Record(result.rows[0]);
+                return Promise.resolve(Result.Success({record:result.rows[0]}))
+            }else{
+                return Promise.resolve(Result.Success({record:Record.getEmptyRecord(this.d_id, cdate, this.location)}))
+            }
+        }catch(error){
+            console.log(error)
+             return Promise.reject(Result.Failure(ERROR_RESPONSE.user.authException))
+        }
+    }
+
+    async getAllRecords(): Promise<Result<any, Error>>{
+           const client = await longshot.connect();
+
+        try{
+            await client.query('BEGIN')
+            let queryText = 'SELECT * from _record WHERE d_id=$1';
+            let inserts = [this.d_id]
+            let result = await client.query(queryText, inserts)
+            if(result.rows.length != 0){
+                console.log(result.rows[0])
+                // let newRec = new Record(result.rows[0]);
+                return Promise.resolve(Result.Success({record:result.rows}))
+            }else{
+                return Promise.resolve(Result.Success({record:Record.getEmptyRecord(this.d_id, "", this.location)}))
+            }
+        }catch(error){
+            console.log(error)
+             return Promise.reject(Result.Failure(ERROR_RESPONSE.user.authException))
+        }
+    }
 
     getDId(){
         return this.d_id;
@@ -94,8 +127,7 @@ export default class User {
             this.age,
             this.gender,
             this.locationIsAllowed,
-            this.location,
-            this.infectionProbability
+            this.location
         ]
     }
 
@@ -106,8 +138,7 @@ export default class User {
             age:this.age,
             gender:this.gender,
             locationIsAllowed:this.locationIsAllowed,
-            location:this.location,
-            infectionProbability:this.infectionProbability
+            location:this.location
         }
        return obj;
     }
@@ -117,7 +148,7 @@ export default class User {
 
         try{
             await client.query("BEGIN")
-            let queryText = 'SELECT d_id, u_id, age, gender, location_is_allowed, location, infection_probability FROM _user WHERE d_id = $1';
+            let queryText = 'SELECT d_id, u_id, age, gender, location_is_allowed, location FROM _user WHERE d_id = $1';
             let inserts = [d_id];
             let res = await client.query(queryText, inserts);
             if(res.rows.length != 0){
@@ -151,8 +182,8 @@ export default class User {
         try{
             await client.query("BEGIN")
             let queryText = {
-                user: 'INSERT INTO _user(d_id, u_id, age, gender, location_is_allowed, location, infection_probability, signup_datetime)' + ' '+
-                        'VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())'
+                user: 'INSERT INTO _user(d_id, u_id, age, gender, location_is_allowed, location signup_datetime)' + ' '+
+                        'VALUES ($1, $2, $3, $4, $5, $6, NOW())'
             }
 
             let inserts = {
@@ -187,75 +218,7 @@ export default class User {
     
 }
 
-    // static async signup(user:any) : Promise<Result<AuthResponse, Error>>{
-    //     const client = await firepool.connect();
 
-    //     try{
-    //         await client.query("BEGIN");
-    //         //Insert into _user
-    //         /*
-    //             user_id,
-    //             name,
-    //             email_address,
-    //             phone_number,
-    //             is_business_user,
-    //             email_is_verified false,
-    //             phone_is_verified true
-    //         */
-    //         /*
-    //             auth_id,
-    //             user_id,
-    //             password_hash,
-    //             salt
-    //          */
-    //         let queryTextUser = "INSERT INTO _user (user_id, name, email_address, phone_number, is_business_user, email_is_verified, phone_is_verified, signup_datetime) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())";
-    //         let userInserts = [
-    //                         user.user_id, user.name, user.emailAddress,
-    //                         user.phone_number, user.isBusinessUser,
-    //                         user.emailIsVerified, user.phoneIsVerified
-    //                     ];
-    //         let userInsertResult = await client.query(queryTextUser, userInserts);
-    //         await client.query("COMMIT");
-    //         let queryTextAuth = "INSERT INTO _auth (auth_id, user_id, password_hash, salt) VALUES ($1, $2, $3, $4)"
-    //         let authInserts = [
-    //                             user.auth_id, user.user_id, user.password_hash, user.salt
-    //                             ];
-    //         let authInsertsResults = await client.query(queryTextAuth, authInserts);
-    //         await client.query("COMMIT");
-            
-    //         let userAuthPayload = {
-    //             auth_id: user.auth_id,
-    //             user_id: user.user_id,
-    //             name: user.name,
-    //             email_address: user.email_address,
-    //             isBusinessUser: user.isBusinessUser
-    //         }
 
-    //         	//TODO: jwt sign options
-	// 			let signOptions = {	
-	// 				subject: user.user_id,
-	// 				algorithm: "RS256"
-	// 			}
-    //             let authToken = jwt.sign(userAuthPayload, privateKey, signOptions)
-
-    //             	//--------LOG-------//
-	// 			console.log(authToken)
-	// 			console.log(userAuthPayload)
-
-    //             let successResponse = <AuthResponse>{
-    //                 authToken :authToken,
-    //                 success:true
-    //             }
-
-    //              return Promise.resolve(Result.Success(successResponse))
-
-    //     }catch(error){
-    //         console.log("Error at User.signup :: ", error)
-    //         await client.query("ROLLBACK");
-    //         return Promise.reject(ERROR_RESPONSE.ERR_SYS)
-    //     }finally{
-    //                 client.release();
-    //             }
-    // }
 
 

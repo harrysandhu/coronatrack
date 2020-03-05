@@ -49,6 +49,7 @@ var RESPONSES = require('../functions/helperConstants').RESPONSES;
 var Result_1 = __importDefault(require("./Result"));
 var dbConfig_1 = require("./config/dbConfig");
 var ErrorResponse_1 = require("./helper/ErrorResponse");
+var Record_1 = __importDefault(require("./Record"));
 var Gender_1 = require("./Gender");
 var User = /** @class */ (function () {
     function User(init) {
@@ -58,7 +59,6 @@ var User = /** @class */ (function () {
         this.gender = Gender_1.Gender.OTHER;
         this.locationIsAllowed = false;
         this.location = {};
-        this.infectionProbability = 0;
         try {
             if (init) {
                 if (User.isValidUI(init)) {
@@ -76,7 +76,7 @@ var User = /** @class */ (function () {
     }
     User.isValidUI = function (u) {
         return u && u.d_id && u.u_id && u.age
-            && u.gender
+            && u.gender && u.location
             && typeof (u.locationIsAllowed) === "boolean";
     };
     User.jwtVerifyUser = function (requestToken, publicKey) {
@@ -93,6 +93,7 @@ var User = /** @class */ (function () {
                                 if (error)
                                     throw error;
                                 userData = authData;
+                                console.log("userData at jwtverify: ", userData);
                             })];
                     case 2:
                         _a.sent();
@@ -106,14 +107,81 @@ var User = /** @class */ (function () {
             });
         });
     };
-    /*
-     private d_id:string = "";
-        private u_id:string = "";
-        private age:number = 0;
-        private gender:Gender = Gender.OTHER;
-        private locationIsAllowed:boolean = false;
-        private location:any = {};
-        private infectionProbability:number = 0;*/
+    User.prototype.getRecordByDate = function (cdate) {
+        return __awaiter(this, void 0, void 0, function () {
+            var client, queryText, inserts, result, error_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, dbConfig_1.longshot.connect()];
+                    case 1:
+                        client = _a.sent();
+                        _a.label = 2;
+                    case 2:
+                        _a.trys.push([2, 5, , 6]);
+                        return [4 /*yield*/, client.query('BEGIN')];
+                    case 3:
+                        _a.sent();
+                        queryText = 'SELECT * from _record WHERE d_id=$1 AND' + ' '
+                            + 'DATE(record_datetime) = DATE($2) ORDER BY record_datetime DESC LIMIT 1';
+                        inserts = [this.d_id, cdate];
+                        return [4 /*yield*/, client.query(queryText, inserts)];
+                    case 4:
+                        result = _a.sent();
+                        if (result.rows.length != 0) {
+                            console.log(result.rows[0]);
+                            // let newRec = new Record(result.rows[0]);
+                            return [2 /*return*/, Promise.resolve(Result_1.default.Success({ record: result.rows[0] }))];
+                        }
+                        else {
+                            return [2 /*return*/, Promise.resolve(Result_1.default.Success({ record: Record_1.default.getEmptyRecord(this.d_id, cdate, this.location) }))];
+                        }
+                        return [3 /*break*/, 6];
+                    case 5:
+                        error_1 = _a.sent();
+                        console.log(error_1);
+                        return [2 /*return*/, Promise.reject(Result_1.default.Failure(ErrorResponse_1.ERROR_RESPONSE.user.authException))];
+                    case 6: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    User.prototype.getAllRecords = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var client, queryText, inserts, result, error_2;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, dbConfig_1.longshot.connect()];
+                    case 1:
+                        client = _a.sent();
+                        _a.label = 2;
+                    case 2:
+                        _a.trys.push([2, 5, , 6]);
+                        return [4 /*yield*/, client.query('BEGIN')];
+                    case 3:
+                        _a.sent();
+                        queryText = 'SELECT * from _record WHERE d_id=$1';
+                        inserts = [this.d_id];
+                        return [4 /*yield*/, client.query(queryText, inserts)];
+                    case 4:
+                        result = _a.sent();
+                        if (result.rows.length != 0) {
+                            console.log(result.rows[0]);
+                            // let newRec = new Record(result.rows[0]);
+                            return [2 /*return*/, Promise.resolve(Result_1.default.Success({ record: result.rows }))];
+                        }
+                        else {
+                            return [2 /*return*/, Promise.resolve(Result_1.default.Success({ record: Record_1.default.getEmptyRecord(this.d_id, "", this.location) }))];
+                        }
+                        return [3 /*break*/, 6];
+                    case 5:
+                        error_2 = _a.sent();
+                        console.log(error_2);
+                        return [2 /*return*/, Promise.reject(Result_1.default.Failure(ErrorResponse_1.ERROR_RESPONSE.user.authException))];
+                    case 6: return [2 /*return*/];
+                }
+            });
+        });
+    };
     User.prototype.getDId = function () {
         return this.d_id;
     };
@@ -124,8 +192,7 @@ var User = /** @class */ (function () {
             this.age,
             this.gender,
             this.locationIsAllowed,
-            this.location,
-            this.infectionProbability
+            this.location
         ];
     };
     User.prototype.repr = function () {
@@ -135,14 +202,13 @@ var User = /** @class */ (function () {
             age: this.age,
             gender: this.gender,
             locationIsAllowed: this.locationIsAllowed,
-            location: this.location,
-            infectionProbability: this.infectionProbability
+            location: this.location
         };
         return obj;
     };
     User.checkIfUserExists = function (d_id) {
         return __awaiter(this, void 0, void 0, function () {
-            var client, queryText, inserts, res, userPayload, signOptions, authToken, successResponse, error_1;
+            var client, queryText, inserts, res, userPayload, signOptions, authToken, successResponse, error_3;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, dbConfig_1.longshot.connect()];
@@ -154,7 +220,7 @@ var User = /** @class */ (function () {
                         return [4 /*yield*/, client.query("BEGIN")];
                     case 3:
                         _a.sent();
-                        queryText = 'SELECT d_id, u_id, age, gender, location_is_allowed, location, infection_probability FROM _user WHERE d_id = $1';
+                        queryText = 'SELECT d_id, u_id, age, gender, location_is_allowed, location FROM _user WHERE d_id = $1';
                         inserts = [d_id];
                         return [4 /*yield*/, client.query(queryText, inserts)];
                     case 4:
@@ -176,7 +242,7 @@ var User = /** @class */ (function () {
                         }
                         return [2 /*return*/, Promise.resolve(Result_1.default.Success({ success: false }))];
                     case 5:
-                        error_1 = _a.sent();
+                        error_3 = _a.sent();
                         return [2 /*return*/, Promise.reject(Result_1.default.Failure(ErrorResponse_1.ERROR_RESPONSE.ERR_SYS))];
                     case 6:
                         client.release();
@@ -188,7 +254,7 @@ var User = /** @class */ (function () {
     };
     User.prototype.signup = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var client, queryText, inserts, insertRes, userPayload, signOptions, authToken, successResponse, error_2;
+            var client, queryText, inserts, insertRes, userPayload, signOptions, authToken, successResponse, error_4;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, dbConfig_1.longshot.connect()];
@@ -201,8 +267,8 @@ var User = /** @class */ (function () {
                     case 3:
                         _a.sent();
                         queryText = {
-                            user: 'INSERT INTO _user(d_id, u_id, age, gender, location_is_allowed, location, infection_probability, signup_datetime)' + ' ' +
-                                'VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())'
+                            user: 'INSERT INTO _user(d_id, u_id, age, gender, location_is_allowed, location signup_datetime)' + ' ' +
+                                'VALUES ($1, $2, $3, $4, $5, $6, NOW())'
                         };
                         inserts = {
                             user: this.toarray()
@@ -226,8 +292,8 @@ var User = /** @class */ (function () {
                         };
                         return [2 /*return*/, Promise.resolve(Result_1.default.Success(successResponse))];
                     case 6:
-                        error_2 = _a.sent();
-                        console.log("error at user signup", error_2);
+                        error_4 = _a.sent();
+                        console.log("error at user signup", error_4);
                         return [4 /*yield*/, client.query("ROLLBACK")];
                     case 7:
                         _a.sent();
@@ -243,66 +309,3 @@ var User = /** @class */ (function () {
     return User;
 }());
 exports.default = User;
-// static async signup(user:any) : Promise<Result<AuthResponse, Error>>{
-//     const client = await firepool.connect();
-//     try{
-//         await client.query("BEGIN");
-//         //Insert into _user
-//         /*
-//             user_id,
-//             name,
-//             email_address,
-//             phone_number,
-//             is_business_user,
-//             email_is_verified false,
-//             phone_is_verified true
-//         */
-//         /*
-//             auth_id,
-//             user_id,
-//             password_hash,
-//             salt
-//          */
-//         let queryTextUser = "INSERT INTO _user (user_id, name, email_address, phone_number, is_business_user, email_is_verified, phone_is_verified, signup_datetime) VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())";
-//         let userInserts = [
-//                         user.user_id, user.name, user.emailAddress,
-//                         user.phone_number, user.isBusinessUser,
-//                         user.emailIsVerified, user.phoneIsVerified
-//                     ];
-//         let userInsertResult = await client.query(queryTextUser, userInserts);
-//         await client.query("COMMIT");
-//         let queryTextAuth = "INSERT INTO _auth (auth_id, user_id, password_hash, salt) VALUES ($1, $2, $3, $4)"
-//         let authInserts = [
-//                             user.auth_id, user.user_id, user.password_hash, user.salt
-//                             ];
-//         let authInsertsResults = await client.query(queryTextAuth, authInserts);
-//         await client.query("COMMIT");
-//         let userAuthPayload = {
-//             auth_id: user.auth_id,
-//             user_id: user.user_id,
-//             name: user.name,
-//             email_address: user.email_address,
-//             isBusinessUser: user.isBusinessUser
-//         }
-//         	//TODO: jwt sign options
-// 			let signOptions = {	
-// 				subject: user.user_id,
-// 				algorithm: "RS256"
-// 			}
-//             let authToken = jwt.sign(userAuthPayload, privateKey, signOptions)
-//             	//--------LOG-------//
-// 			console.log(authToken)
-// 			console.log(userAuthPayload)
-//             let successResponse = <AuthResponse>{
-//                 authToken :authToken,
-//                 success:true
-//             }
-//              return Promise.resolve(Result.Success(successResponse))
-//     }catch(error){
-//         console.log("Error at User.signup :: ", error)
-//         await client.query("ROLLBACK");
-//         return Promise.reject(ERROR_RESPONSE.ERR_SYS)
-//     }finally{
-//                 client.release();
-//             }
-// }

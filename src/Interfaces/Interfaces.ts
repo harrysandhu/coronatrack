@@ -23,14 +23,15 @@ export interface UserInterface{
     u_id:string;
     age:number;
     gender:Gender;
+    location:any;
     locationIsAllowed:boolean;
+    iat?:string;
+    sub?:string;
 }
 
 
 export interface Symptoms{
-    data: {
-        [name:string]: Symptom
-    }
+   
 }
 
 
@@ -42,6 +43,8 @@ export interface SymptomInterface{
 
 
 export interface RecordInterface{
-    recordDateTime:Date;
-    symptoms:Symptoms;
+    d_id:string;
+    recordDateTime:string;
+    location:any;
+    symptoms:any;
 }

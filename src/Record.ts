@@ -25,7 +25,8 @@ import {Weights} from './Weights'
 
 
 export default class Record{
-    private user:any = new Object()
+    private d_id:string = "";
+    private location:any = {};
     private recordDateTime:Date = new Date();
     private symptoms:any = {
         fever:new Symptom({name: "Fever",weight: Weights.fever, state:SymptomState.NO}),
@@ -34,17 +35,27 @@ export default class Record{
         breathing: new Symptom({name:"Breathing Difficulty", weight:Weights.breathing, state:SymptomState.NO}),
         bodyAche: new Symptom({name:"Body Ache",weight: Weights.bodyAche,state:SymptomState.NO})
     };
-
     
+    static getEmptyRecord(d_id:string, date:string, location:any): Record{
+        return new Record({
+            d_id:d_id, 
+            location:location,
+            recordDateTime:date,
+            symptoms: {
+                fever:new Symptom({name: "Fever",weight: Weights.fever, state:SymptomState.NO}),
+                cold: new Symptom({name: "Cold",weight: Weights.cold, state:SymptomState.NO}),
+                cough: new Symptom({name:"Cough", weight: Weights.cough,state: SymptomState.NO}),
+                breathing: new Symptom({name:"Breathing Difficulty", weight:Weights.breathing, state:SymptomState.NO}),
+                bodyAche: new Symptom({name:"Body Ache",weight: Weights.bodyAche,state:SymptomState.NO})
+            }
+            })
+    }
+
   
     constructor(init:RecordInterface){
         try{
             if(init){
-                if(User.isValidUI(init)){
                     Object.assign(this, init)
-                }else{
-                    throw ERROR_RESPONSE.INVALID_REQUEST;
-                }
             }
         }catch(e){
             console.log(e.stack)
