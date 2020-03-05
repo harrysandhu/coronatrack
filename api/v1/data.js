@@ -1,15 +1,4 @@
 "use strict";
-var __assign = (this && this.__assign) || function () {
-    __assign = Object.assign || function(t) {
-        for (var s, i = 1, n = arguments.length; i < n; i++) {
-            s = arguments[i];
-            for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p))
-                t[p] = s[p];
-        }
-        return t;
-    };
-    return __assign.apply(this, arguments);
-};
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -52,7 +41,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 var fs = require("fs");
 var express_1 = __importDefault(require("express"));
-var auth = express_1.default.Router();
+var data = express_1.default.Router();
 var jwt = require("jsonwebtoken");
 var crypto = require('crypto');
 var sha256 = require('js-sha256');
@@ -66,6 +55,7 @@ var BASE_DEV = require('../../functions/helperConstants').BASE_DEV;
     IMPORT CORE CLASSES
  */
 var User_1 = __importDefault(require("../../src/User"));
+var Result_1 = __importDefault(require("../../src/Result"));
 var ErrorResponse_1 = require("../../src/helper/ErrorResponse");
 // /**DATABASE IMPORTS AND CONFIG */
 // import AWS from 'aws-sdk';
@@ -73,87 +63,42 @@ var ErrorResponse_1 = require("../../src/helper/ErrorResponse");
 // AWS.config.update(aws_config.aws_remote_config)
 // //to create a dynamoDB instance
 // //let dynamodb:any = new AWS.DynamoDB()
-auth.get("/user", verifyAuthToken, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var result, error_1;
+/*
+*returns record for given date for user,
+*if record not found returns empty symptom template
+*
+if date not provided, returns all records
+*/
+data.get("/record", verifyAuthToken, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var ur, u, user, result, result, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                _a.trys.push([0, 2, , 3]);
+                _a.trys.push([0, 6, , 7]);
                 return [4 /*yield*/, User_1.default.jwtVerifyUser(req.token, publicKey)];
             case 1:
-                result = _a.sent();
-                if (result) {
-                    return [2 /*return*/, res.json(result.get())];
-                }
-                return [3 /*break*/, 3];
+                ur = _a.sent();
+                console.log("UR: ", ur);
+                if (!User_1.default.isValidUI(ur.get())) return [3 /*break*/, 5];
+                u = ur.get();
+                //user is verified
+                console.log("userresult at /record: ", ur);
+                user = new User_1.default(u);
+                if (!!req.query.date) return [3 /*break*/, 3];
+                return [4 /*yield*/, user.getRecordByDate(req.query.date)];
             case 2:
+                result = _a.sent();
+                return [2 /*return*/, res.json(result.get())];
+            case 3: return [4 /*yield*/, user.getAllRecords()];
+            case 4:
+                result = _a.sent();
+                return [2 /*return*/, res.json(result.get())];
+            case 5: throw Result_1.default.Failure(ErrorResponse_1.ERROR_RESPONSE.user.authException);
+            case 6:
                 error_1 = _a.sent();
                 return [2 /*return*/, res.json(error_1.get())];
-            case 3: return [2 /*return*/];
+            case 7: return [2 /*return*/];
         }
     });
 }); });
-auth.get("/check", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var d_id, checkUser, error_2;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                if (!req.query.d_id)
-                    return [2 /*return*/, res.json(ErrorResponse_1.ERROR_RESPONSE.INVALID_REQUEST)];
-                d_id = req.query.d_id;
-                _a.label = 1;
-            case 1:
-                _a.trys.push([1, 3, , 4]);
-                return [4 /*yield*/, User_1.default.checkIfUserExists(d_id)];
-            case 2:
-                checkUser = _a.sent();
-                return [2 /*return*/, res.json(checkUser.get())];
-            case 3:
-                error_2 = _a.sent();
-                console.log(error_2);
-                return [2 /*return*/, res.json(ErrorResponse_1.ERROR_RESPONSE.INVALID_REQUEST)];
-            case 4: return [2 /*return*/];
-        }
-    });
-}); });
-auth.post("/signup", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var user, checkUser, error_3, signUpResult, error_4;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
-            case 0:
-                console.log(__assign({}, req.body.user));
-                _a.label = 1;
-            case 1:
-                _a.trys.push([1, 4, , 5]);
-                return [4 /*yield*/, new User_1.default(__assign({}, req.body.user))];
-            case 2:
-                user = _a.sent();
-                return [4 /*yield*/, User_1.default.checkIfUserExists(user.getDId())];
-            case 3:
-                checkUser = _a.sent();
-                if (checkUser.get().success) {
-                    return [2 /*return*/, res.json(checkUser.get())];
-                }
-                return [3 /*break*/, 5];
-            case 4:
-                error_3 = _a.sent();
-                console.log(error_3);
-                return [2 /*return*/, res.json(ErrorResponse_1.ERROR_RESPONSE.INVALID_REQUEST)];
-            case 5:
-                _a.trys.push([5, 7, , 8]);
-                return [4 /*yield*/, user.signup()];
-            case 6:
-                signUpResult = _a.sent();
-                if (signUpResult) {
-                    return [2 /*return*/, res.json(signUpResult.get())];
-                }
-                return [3 /*break*/, 8];
-            case 7:
-                error_4 = _a.sent();
-                console.log("error at user signup", error_4);
-                return [2 /*return*/, res.json(error_4.get())];
-            case 8: return [2 /*return*/];
-        }
-    });
-}); });
-module.exports = auth;
+module.exports = data;

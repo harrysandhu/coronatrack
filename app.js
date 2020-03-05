@@ -14,7 +14,7 @@ var morganLogger = require("morgan")
 /** api v3 endpoints */
 
 var auth = require("./api/v1/auth")
-
+var data = require("./api/v1/data")
 
 
 var cors = require('cors')
@@ -50,5 +50,5 @@ app.use("/media", media)
 /*v3 api*/
 
 app.use("/api/v1/auth", auth)
-
+app.use("/api/v1/data", data)
 

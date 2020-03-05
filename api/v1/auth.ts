@@ -43,7 +43,7 @@ import UserAuthData from '../../src/Interfaces/UserAuthData';
 
 auth.get("/user", verifyAuthToken, async (req:any, res:any) =>{
    try{
-
+       
         let result = <Result<any, Error>>await User.jwtVerifyUser(req.token, publicKey);
         if(result){
             return res.json(result.get())
