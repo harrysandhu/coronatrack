@@ -147,7 +147,7 @@ export default class User {
         try{
             await client.query('BEGIN')
             let queryText = 'INSERT INTO _record(record_datetime, d_id, location, symptoms) VALUES (DATE(NOW()), $1, $2, $3)';
-            let inserts = [this.d_id, JSON.stringify({location:record.location}), JSON.stringify({symptoms:record.symptoms})]
+            let inserts = [this.d_id, JSON.stringify(record.location), JSON.stringify(record.symptoms)]
             let res = await client.query(queryText, inserts)
              await client.query("COMMIT");
             console.log("RESULT AT INSERTRECORD: ", res)
