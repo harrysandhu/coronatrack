@@ -51,6 +51,11 @@ export default class Record{
             })
     }
 
+      static isValidRI(r: any): r is RecordInterface {
+
+        return r && r.d_id && r.recordDateTime && r.location
+         && r.symptoms;
+    }
   
     constructor(init:RecordInterface){
         try{
