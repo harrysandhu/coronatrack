@@ -44,7 +44,7 @@ export interface SymptomInterface{
 
 export interface RecordInterface{
     d_id:string;
-    recordDateTime:string;
+    record_datetime:string;
     location:any;
     symptoms:any;
 }

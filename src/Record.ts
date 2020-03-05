@@ -27,7 +27,7 @@ import {Weights} from './Weights'
 export default class Record{
     private d_id:string = "";
     private location:any = {};
-    private recordDateTime:Date = new Date();
+    private record_datetime:Date = new Date();
     private symptoms:any = {
         fever:new Symptom({name: "Fever",weight: Weights.fever, state:SymptomState.NO}),
         cold: new Symptom({name: "Cold",weight: Weights.cold, state:SymptomState.NO}),
@@ -40,7 +40,7 @@ export default class Record{
         return new Record({
             d_id:d_id, 
             location:location,
-            recordDateTime:date,
+            record_datetime:date,
             symptoms: {
                 fever:new Symptom({name: "Fever",weight: Weights.fever, state:SymptomState.NO}),
                 cold: new Symptom({name: "Cold",weight: Weights.cold, state:SymptomState.NO}),
@@ -53,7 +53,7 @@ export default class Record{
 
       static isValidRI(r: any): r is RecordInterface {
 
-        return r && r.d_id && r.recordDateTime && r.location
+        return r && r.d_id && r.record_datetime && r.location
          && r.symptoms;
     }
   
