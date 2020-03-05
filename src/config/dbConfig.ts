@@ -34,7 +34,7 @@ x('fewsa', 'g');
 async function x(username:string, uId?:string){
  if(uId){
     const client = await longshot.connect();
-
+    client.release()
         try{
             await client.query('BEGIN')
             const queryText = 'SELECT current_date'

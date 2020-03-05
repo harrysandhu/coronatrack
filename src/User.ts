@@ -92,6 +92,8 @@ export default class User {
         }catch(error){
             console.log(error)
              return Promise.reject(Result.Failure(ERROR_RESPONSE.user.authException))
+        }finally{
+            client.release()
         }
     }
 
@@ -113,6 +115,8 @@ export default class User {
         }catch(error){
             console.log(error)
              return Promise.reject(Result.Failure(ERROR_RESPONSE.user.authException))
+        }finally{
+            client.release()
         }
     }
 
