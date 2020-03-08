@@ -130,9 +130,9 @@ export default class Helper{
             /*
             * _infection neigbours near the user, reported within last 15 mins
             */
-            let queryText = 'SELECT DISTINCT location_geohash, infection_probability, MIN(AGE(NOW(), at_datetime)) FROM _infection'+
-                +' '+ 'WHERE EXTRACT(MINUTE FROM AGE(NOW(),at_datetime)) < 15 '
-                +' '+'AND location_geohash IN($1, $2, $3, $4, $5, $6, $7, $8) GROUP BY location_geohash, infection_probability'
+            let queryText = 'SELECT DISTINCT location_geohash, infection_probability, MIN(AGE(NOW(), at_datetime)) FROM _infection'
+                +" "+ 'WHERE EXTRACT(MINUTE FROM AGE(NOW(),at_datetime)) < 15'
+                +" "+'AND location_geohash IN($1, $2, $3, $4, $5, $6, $7, $8) GROUP BY location_geohash, infection_probability'
             let inserts = neighboursArr;
             let result = await client.query(queryText, inserts)
             let infProb = 0;
