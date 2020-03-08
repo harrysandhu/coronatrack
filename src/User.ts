@@ -150,7 +150,7 @@ export default class User {
         const client = await longshot.connect()
         try{
             await client.query('BEGIN')
-            let queryText = "INSERT INTO _record(record_datetime, d_id, location, symptoms) VALUES (TIMESTAMP '$1', $2, $3, $4)";
+            let queryText = "INSERT INTO _record(record_datetime, d_id, location, symptoms) VALUES (TIMESTAMP $1, $2, $3, $4)";
             let inserts = [dateISO, this.d_id, JSON.stringify(record.location), JSON.stringify(record.symptoms)]
             let res = await client.query(queryText, inserts)
               await client.query("COMMIT");
