@@ -17,6 +17,10 @@ import {longshot, firepool} from './config/dbConfig'
 import {ERROR_RESPONSE} from './helper/ErrorResponse'
 import {RESPONSE} from './helper/Response'
 import User from './User'
+import Symptom from './Symptom'
+import {Weights} from './Weights' 
+import {SymptomState} from './SymptomState'
+var Geohash = require('ngeohash');
 
 
 export default class Helper{
@@ -40,10 +44,161 @@ export default class Helper{
 	    }   
 
     return result;
-  
- 
+
+    }
+    static async getLocationGeohash(latitude:number, longitude:number, precision:number )
+    : Promise<Result<any, Error>> 
+    {
+        let locationGeohash = Geohash.encode(latitude, longitude, precision);
+        if(locationGeohash){
+            return Promise.resolve(Result.Success(locationGeohash))
+        }
+        return Promise.reject(Result.Failure(ERROR_RESPONSE.ERR_SYS))
     }
 
+    static getRange(n:number):number{
+        switch(true){
+            case (n <= 20):
+                return 0;
+            case (n > 20 && n <= 40):
+                return 1;
+            case ( n > 40 && n <= 60):
+                return 2;
+            case (n > 60 && n <= 85):
+                return 3;
+            default:
+                return 4;
+            
+        }
+    }
+
+    static rangeDiff(x:number, m:number):number{
+        return Helper.getRange(m) - Helper.getRange(x)
+    }
+
+    static rms(nums:Array<number>):number{
+        if(nums.length > 0){
+            let sqsum = 0;
+           for(let i = 0; i < nums.length; i++){
+                    sqsum += nums[i] * nums[i];
+                }
+        return Math.sqrt(sqsum/nums.length)
+        }
+        return 0;
+    }
+    
+    static InfectionProbability(x:number, a:number, m:number, rd:number, np:Array<number>) : number{
+        if(x <= a){
+            let rmsval = Helper.rms(np);
+            if(rd <= 0){
+                return rmsval;
+            }
+            else if(rd == 1){
+                return Helper.rms([rmsval, m]);
+            }
+            else{
+                return Helper.rms([Helper.rms([rmsval, m]), rmsval, m])
+            }
+        }
+        else{
+            if(rd <= 0){
+                return x;
+            }
+            else{
+                return (x+m) /2;
+            }
+        }
+        return x;
+    }
+
+    static async processInfectionState(d_id:string, locationGeohash:string )
+    : Promise<Result<any, Error>> 
+    {   
+         let client = await longshot.connect()
+         let symptoms:any;
+        try{    
+            //get recent record, if not found, return empty record
+            await client.query('BEGIN')
+            let queryText = 'SELECT DISTINCT d_id, symptoms, MIN(NOW()-record_datetime) FROM _record WHERE d_id = $1 GROUP BY d_id, symptoms';
+            let inserts = [d_id];
+            let result = await client.query(queryText, inserts)
+
+            if(result.rows.length == 0){
+                //return new empty record
+                symptoms = {
+                cold: new Symptom({name: "Cold",weight: Weights.cold, state:SymptomState.MILD}),
+                cough: new Symptom({name:"Cough", weight: Weights.cough,state: SymptomState.NO}),
+                fever:new Symptom({name: "Fever",weight: Weights.fever, state:SymptomState.MILD}),
+                bodyAche: new Symptom({name:"Body Ache",weight: Weights.bodyAche,state:SymptomState.NO}),
+                breathing: new Symptom({name:"Breathing Difficulty", weight:Weights.breathing, state:SymptomState.MILD})
+            }
+            }else{
+                symptoms = result.rows[0]['symptoms']
+            }
+
+
+        }catch(e){
+            console.log("error : ", e)
+             return Promise.reject(Result.Failure(ERROR_RESPONSE.ERR_SYS))
+        }finally{
+            client.release()
+        }
+     
+       client = await longshot.connect()
+        try{
+               let x = 0, a = 0, m = 0, rd = 0;
+        Object.keys(symptoms).map((symptom) =>{
+            x += (symptoms[symptom]['state'] * Weights[symptom])
+        })
+        const neighboursArr = Geohash.neighbors(locationGeohash);
+
+          let np:Array<number> = [];
+            await client.query('BEGIN')
+            let queryText = 'SELECT DISTINCT location_geohash, infection_probability, MIN(NOW() - at_datetime) FROM _infection '+
+                            'WHERE location_geohash IN ($1, $2, $3, $4, $5, $6, $7, $8) GROUP BY location_geohash, infection_probability';
+            let inserts = neighboursArr;
+            let result = await client.query(queryText, inserts)
+            let infProb = 0;
+            if(result.rows.length == 0){
+                //no neighbours, 
+                infProb = x;
+            }else{
+              
+                for(let i = 0; i < result.rows.length; i++){
+                     np.push(result.rows[i]['infection_probability'])
+                }
+               
+               
+
+                m = Math.max(...np)
+                let sum_np = 0
+                for(let i = 0; i < np.length; i++){
+                    sum_np += np[i];
+                }
+                a = (x + sum_np) / (np.length + 1);
+                rd = Helper.rangeDiff(x, a);
+                  infProb = Helper.InfectionProbability(x, a, m, rd, np);
+            }
+            
+                queryText = 'INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime)' + ' '
+                            + 'VALUES ($1, $2, $3, NOW())'
+                inserts = [d_id, locationGeohash, infProb]
+                let insertResult = await client.query(queryText, inserts)
+                await client.query("COMMIT");
+                console.log(insertResult)
+              
+                return Promise.resolve(Result.Success({infection_probability:infProb,success:true}))
+                
+            
+        }catch(error){
+            console.log(error)
+             return Promise.reject(Result.Failure(ERROR_RESPONSE.ERR_SYS))
+        }finally{
+            client.release();
+        }
+
+    }
+ 
 
     // /**	
     // * Checks and validates username.
