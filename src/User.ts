@@ -150,7 +150,7 @@ export default class User {
         const client = await longshot.connect()
         try{
             await client.query('BEGIN')
-            let queryText = "INSERT INTO _record(record_datetime, d_id, location, symptoms) VALUES (TIMESTAMP $1, $2, $3, $4)";
+            let queryText = "INSERT INTO _record(record_datetime, d_id, location, symptoms) VALUES ($1, $2, $3, $4)";
             let inserts = [dateISO, this.d_id, JSON.stringify(record.location), JSON.stringify(record.symptoms)]
             let res = await client.query(queryText, inserts)
               await client.query("COMMIT");
@@ -166,7 +166,7 @@ export default class User {
             let locationGeohash = Geohash.encode(latitude, longitude, precision);
 
             queryText = "INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime)"
-                        ""  + "VALUES ($1, $2, $3, NOW() ";
+                        " "  + "VALUES ($1, $2, $3, NOW() ";
             inserts = [this.d_id, locationGeohash, x];
             res = await client.query(queryText, inserts)
              await client.query("COMMIT");
