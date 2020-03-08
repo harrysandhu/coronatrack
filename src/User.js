@@ -51,6 +51,8 @@ var dbConfig_1 = require("./config/dbConfig");
 var ErrorResponse_1 = require("./helper/ErrorResponse");
 var Record_1 = __importDefault(require("./Record"));
 var Gender_1 = require("./Gender");
+var Weights_1 = require("./Weights");
+var Geohash = require('ngeohash');
 var User = /** @class */ (function () {
     function User(init) {
         this.d_id = "";
@@ -147,7 +149,7 @@ var User = /** @class */ (function () {
             });
         });
     };
-    User.prototype.getRecordByDate = function (cdate) {
+    User.prototype.getRecordByDate = function (dateISO) {
         return __awaiter(this, void 0, void 0, function () {
             var client, queryText, inserts, result, error_2;
             return __generator(this, function (_a) {
@@ -162,8 +164,8 @@ var User = /** @class */ (function () {
                     case 3:
                         _a.sent();
                         queryText = 'SELECT * from _record WHERE d_id=$1 AND' + ' '
-                            + 'record_datetime = $2 ORDER BY record_datetime DESC LIMIT 1';
-                        inserts = [this.d_id, cdate];
+                            + 'DATE(record_datetime) = DATE($2)';
+                        inserts = [this.d_id, dateISO];
                         return [4 /*yield*/, client.query(queryText, inserts)];
                     case 4:
                         result = _a.sent();
@@ -228,43 +230,61 @@ var User = /** @class */ (function () {
             });
         });
     };
-    User.prototype.insertRecord = function (record) {
+    User.prototype.insertRecord = function (record, dateISO) {
         return __awaiter(this, void 0, void 0, function () {
-            var client, queryText, inserts, res, error_4;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var client, queryText, inserts, res, symptoms_1, x_1, _a, latitude, longitude, precision, locationGeohash, error_4;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0:
                         console.log("insert record start: ", JSON.stringify({ location: record.location }));
                         return [4 /*yield*/, dbConfig_1.longshot.connect()];
                     case 1:
-                        client = _a.sent();
-                        _a.label = 2;
+                        client = _b.sent();
+                        _b.label = 2;
                     case 2:
-                        _a.trys.push([2, 6, 8, 9]);
+                        _b.trys.push([2, 8, 10, 11]);
                         return [4 /*yield*/, client.query('BEGIN')];
                     case 3:
-                        _a.sent();
-                        queryText = 'INSERT INTO _record(record_datetime, d_id, location, symptoms) VALUES (DATE(NOW()), $1, $2, $3)';
-                        inserts = [this.d_id, JSON.stringify(record.location), JSON.stringify(record.symptoms)];
+                        _b.sent();
+                        queryText = "INSERT INTO _record(record_datetime, d_id, location, symptoms) VALUES (TIMESTAMP '$1', $2, $3, $4)";
+                        inserts = [dateISO, this.d_id, JSON.stringify(record.location), JSON.stringify(record.symptoms)];
                         return [4 /*yield*/, client.query(queryText, inserts)];
                     case 4:
-                        res = _a.sent();
+                        res = _b.sent();
                         return [4 /*yield*/, client.query("COMMIT")];
                     case 5:
-                        _a.sent();
+                        _b.sent();
                         console.log("RESULT AT INSERTRECORD: ", res);
-                        return [2 /*return*/, Promise.resolve(Result_1.default.Success({ record: record, success: true }))];
+                        symptoms_1 = record.symptoms;
+                        x_1 = 0;
+                        Object.keys(symptoms_1).map(function (symptom) {
+                            x_1 += (symptoms_1[symptom]['state'] * Weights_1.Weights[symptom]);
+                        });
+                        _a = record.location.coords, latitude = _a.latitude, longitude = _a.longitude;
+                        precision = 9;
+                        locationGeohash = Geohash.encode(latitude, longitude, precision);
+                        queryText = "INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime)";
+                        "" + "VALUES ($1, $2, $3, NOW() ";
+                        inserts = [this.d_id, locationGeohash, x_1];
+                        return [4 /*yield*/, client.query(queryText, inserts)];
                     case 6:
-                        error_4 = _a.sent();
+                        res = _b.sent();
+                        return [4 /*yield*/, client.query("COMMIT")];
+                    case 7:
+                        _b.sent();
+                        console.log("RESULT AT INSERT INFEC: ", res);
+                        return [2 /*return*/, Promise.resolve(Result_1.default.Success({ record: record, success: true }))];
+                    case 8:
+                        error_4 = _b.sent();
                         console.log("error at insertRecord: ", error_4);
                         return [4 /*yield*/, client.query('ROLLBACK')];
-                    case 7:
-                        _a.sent();
+                    case 9:
+                        _b.sent();
                         return [2 /*return*/, Promise.reject(Result_1.default.Failure(ErrorResponse_1.ERROR_RESPONSE.ERR_SYS))];
-                    case 8:
+                    case 10:
                         client.release();
                         return [7 /*endfinally*/];
-                    case 9: return [2 /*return*/];
+                    case 11: return [2 /*return*/];
                 }
             });
         });

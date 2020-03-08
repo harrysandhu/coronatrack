@@ -111,7 +111,7 @@ export default class Helper{
         return x;
     }
 
-    static async processInfectionState(d_id:string, locationGeohash:string, symptoms:any, dateISO:string )
+    static async processInfectionState(d_id:string, locationGeohash:string, symptoms:any )
     : Promise<Result<any, Error>> 
     {   
 
@@ -165,7 +165,7 @@ export default class Helper{
             
                 queryText = "INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime)" + " "
                             + "VALUES ($1, $2, $3, NOW())"
-                inserts = [d_id, locationGeohash, infProb, dateISO]
+                inserts = [d_id, locationGeohash, infProb]
                 let insertResult = await client.query(queryText, inserts)
                 await client.query("COMMIT");
                 console.log(insertResult)

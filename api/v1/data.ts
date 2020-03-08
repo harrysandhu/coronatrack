@@ -114,7 +114,7 @@ data.get(
                     //user is verified
                     console.log("userresult at /record: ", ur)
                     let user = new User(u);
-                    let result = <Result<any, Error>>await user.getRecordByDate(dateISO);
+                    let result = <Result<any, Error>>await user.getRecordByDate(req.query.dateISO);
                     return res.json(result.get())
                 }
                 throw Result.Failure(ERROR_RESPONSE.user.authException)
@@ -154,7 +154,7 @@ data.post(
                     //user is verified
                     console.log("userresult at /record: ", ur)
                     let user = new User(u);
-                    let result = <Result<any, Error>>await user.insertRecord(record, dateISO)
+                    let result = <Result<any, Error>>await user.insertRecord(record, req.body.dateISO)
                     return res.json(result.get())
                   
                 }
@@ -186,7 +186,7 @@ data.get(
         if(!req.query.d_id || !req.query.locationGeohash || !req.query.symptoms) 
         return res.json(ERROR_RESPONSE.INVALID_REQUEST);
         try{
-            let {d_id, locationGeohash} = req.query
+            let {d_id, locationGeohash, symptoms} = req.query
         let result = <Result<any, Error>>await Helper.processInfectionState(d_id, locationGeohash, symptoms)
         if(result){
             return res.json(result.get());

@@ -20,6 +20,10 @@ import Record from './Record'
 import {UserInterface, RecordInterface} from  './Interfaces/Interfaces'
 import {Gender} from './Gender'
 
+import {Weights} from './Weights' 
+var Geohash = require('ngeohash');
+import {SymptomState} from './SymptomState'
+
 
 export default class User {
 
@@ -152,6 +156,7 @@ export default class User {
               await client.query("COMMIT");
             console.log("RESULT AT INSERTRECORD: ", res)
             
+            let symptoms = record.symptoms
             let x = 0;
              Object.keys(symptoms).map((symptom) =>{
             x += (symptoms[symptom]['state'] * Weights[symptom])
@@ -160,7 +165,7 @@ export default class User {
             let precision = 9;
             let locationGeohash = Geohash.encode(latitude, longitude, precision);
 
-            queryText = "INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime)'
+            queryText = "INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime)"
                         ""  + "VALUES ($1, $2, $3, NOW() ";
             inserts = [this.d_id, locationGeohash, x];
             res = await client.query(queryText, inserts)
