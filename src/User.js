@@ -232,7 +232,7 @@ var User = /** @class */ (function () {
     };
     User.prototype.insertRecord = function (record, dateISO) {
         return __awaiter(this, void 0, void 0, function () {
-            var client, queryText, inserts, res, symptoms_1, x_1, _a, latitude, longitude, precision, locationGeohash, error_4;
+            var client, queryText, inserts, res, symptoms_1, x_1, _a, latitude, longitude, precision, locationGeohash, queryText1, inserts1, res2, error_4;
             return __generator(this, function (_b) {
                 switch (_b.label) {
                     case 0:
@@ -246,7 +246,7 @@ var User = /** @class */ (function () {
                         return [4 /*yield*/, client.query('BEGIN')];
                     case 3:
                         _b.sent();
-                        queryText = "INSERT INTO _record(record_datetime, d_id, location, symptoms) VALUES (TIMESTAMP '$1', $2, $3, $4)";
+                        queryText = "INSERT INTO _record(record_datetime, d_id, location, symptoms) VALUES ($1, $2, $3, $4)";
                         inserts = [dateISO, this.d_id, JSON.stringify(record.location), JSON.stringify(record.symptoms)];
                         return [4 /*yield*/, client.query(queryText, inserts)];
                     case 4:
@@ -255,7 +255,7 @@ var User = /** @class */ (function () {
                     case 5:
                         _b.sent();
                         console.log("RESULT AT INSERTRECORD: ", res);
-                        symptoms_1 = record.symptoms;
+                        symptoms_1 = record['symptoms'];
                         x_1 = 0;
                         Object.keys(symptoms_1).map(function (symptom) {
                             x_1 += (symptoms_1[symptom]['state'] * Weights_1.Weights[symptom]);
@@ -263,16 +263,16 @@ var User = /** @class */ (function () {
                         _a = record.location.coords, latitude = _a.latitude, longitude = _a.longitude;
                         precision = 9;
                         locationGeohash = Geohash.encode(latitude, longitude, precision);
-                        queryText = "INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime)";
-                        "" + "VALUES ($1, $2, $3, NOW() ";
-                        inserts = [this.d_id, locationGeohash, x_1];
-                        return [4 /*yield*/, client.query(queryText, inserts)];
+                        console.log("wefan\n\scojkfisaduh\n\nzxjkfsiduxzcjnkn\n\ndscizxnjk");
+                        queryText1 = 'INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime) VALUES ($1, $2, $3, NOW() )';
+                        inserts1 = [this.d_id, locationGeohash, x_1];
+                        return [4 /*yield*/, client.query(queryText1, inserts1)];
                     case 6:
-                        res = _b.sent();
+                        res2 = _b.sent();
                         return [4 /*yield*/, client.query("COMMIT")];
                     case 7:
                         _b.sent();
-                        console.log("RESULT AT INSERT INFEC: ", res);
+                        console.log("RESULT AT INSERT INFEC: ", res2);
                         return [2 /*return*/, Promise.resolve(Result_1.default.Success({ record: record, success: true }))];
                     case 8:
                         error_4 = _b.sent();

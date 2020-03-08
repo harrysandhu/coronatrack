@@ -164,9 +164,9 @@ var Helper = /** @class */ (function () {
                         ];
                     case 3:
                         _a.sent();
-                        queryText = 'SELECT DISTINCT location_geohash, infection_probability, MIN(AGE(NOW(), at_datetime)) FROM _infection' +
-                            +' ' + 'WHERE EXTRACT(MINUTE FROM AGE(NOW(),at_datetime)) < 15 '
-                            + ' ' + 'AND location_geohash IN($1, $2, $3, $4, $5, $6, $7, $8) GROUP BY location_geohash, infection_probability';
+                        queryText = 'SELECT DISTINCT location_geohash, infection_probability, MIN(AGE(NOW(), at_datetime)) FROM _infection'
+                            + " " + 'WHERE EXTRACT(MINUTE FROM AGE(NOW(),at_datetime)) < 15'
+                            + " " + 'AND location_geohash IN($1, $2, $3, $4, $5, $6, $7, $8) GROUP BY location_geohash, infection_probability';
                         inserts = neighboursArr;
                         return [4 /*yield*/, client.query(queryText, inserts)];
                     case 4:
@@ -176,7 +176,7 @@ var Helper = /** @class */ (function () {
                         //no neighbours, 
                         infProb = x_1;
                         //UPDATE at_datetime
-                        queryText = 'UPDATE _infection SET at_datetime = NOW() AND location_geohash=$1 WHERE d_id=$2 ORDER BY at_datetime DESC LIMIT 1';
+                        queryText = 'UPDATE _infection SET at_datetime = NOW(), location_geohash=$1 WHERE d_id=$2 AND at_datetime IN (SELECT at_datetime FROM _infection WHERE d_id=$2 ORDER BY at_datetime DESC LIMIT 1)';
                         inserts = [locationGeohash, d_id];
                         return [4 /*yield*/, client.query(queryText, inserts)];
                     case 5:

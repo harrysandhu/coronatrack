@@ -131,7 +131,7 @@ export default class Helper{
             * _infection neigbours near the user, reported within last 15 mins
             */
             let queryText = 'SELECT DISTINCT location_geohash, infection_probability, MIN(AGE(NOW(), at_datetime)) FROM _infection'
-                +" "+ 'WHERE EXTRACT(MINUTE FROM AGE(NOW(),at_datetime)) < 15'
+                +" "+ 'WHERE EXTRACT(MINUTE FROM AGE(NOW(),at_datetime)) < 10'
                 +" "+'AND location_geohash IN($1, $2, $3, $4, $5, $6, $7, $8) GROUP BY location_geohash, infection_probability'
             let inserts = neighboursArr;
             let result = await client.query(queryText, inserts)
@@ -140,7 +140,7 @@ export default class Helper{
                 //no neighbours, 
                 infProb = x;
                 //UPDATE at_datetime
-                queryText = 'UPDATE _infection SET at_datetime = NOW(), location_geohash=$1 WHERE d_id=$2 AND at_datetime IN (SELECT at_datetime FROM _infection WHERE d_id=$2 ORDER BY at_datetime DESC LIMIT 1)';
+                queryText = 'UPDATE _infection SET at_datetime = NOW(), location_geohash=$1 WHERE d_id=$2';
                  inserts = [locationGeohash, d_id]
                 let insertResult = await client.query(queryText, inserts)
                 await client.query("COMMIT");
@@ -162,10 +162,9 @@ export default class Helper{
                 rd = Helper.rangeDiff(x, a);
                   infProb = Helper.InfectionProbability(x, a, m, rd, np);
          
-            
-                queryText = "INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime)" + " "
-                            + "VALUES ($1, $2, $3, NOW())"
-                inserts = [d_id, locationGeohash, infProb]
+                 queryText = 'UPDATE _infection SET at_datetime = NOW(), infection_probability = $1 location_geohash=$2 WHERE d_id=$3';
+
+                inserts = [infProb, locationGeohash, d_id]
                 let insertResult = await client.query(queryText, inserts)
                 await client.query("COMMIT");
                 console.log(insertResult)
