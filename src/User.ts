@@ -153,24 +153,25 @@ export default class User {
             let queryText = "INSERT INTO _record(record_datetime, d_id, location, symptoms) VALUES ($1, $2, $3, $4)";
             let inserts = [dateISO, this.d_id, JSON.stringify(record.location), JSON.stringify(record.symptoms)]
             let res = await client.query(queryText, inserts)
-              await client.query("COMMIT");
+             
             console.log("RESULT AT INSERTRECORD: ", res)
             
-            let symptoms = record.symptoms
+            let symptoms = record['symptoms']
             let x = 0;
              Object.keys(symptoms).map((symptom) =>{
             x += (symptoms[symptom]['state'] * Weights[symptom])
             })
+
             let {latitude, longitude } = record.location.coords
             let precision = 9;
             let locationGeohash = Geohash.encode(latitude, longitude, precision);
-
-            queryText = "INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime)"
+            console.log("wefan\n\scojkfisaduh\n\nzxjkfsiduxzcjnkn\n\ndscizxnjk")
+            let queryText1 = "INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime)"
                         " "  + "VALUES ($1, $2, $3, NOW()) ";
-            inserts = [this.d_id, locationGeohash, x];
-            res = await client.query(queryText, inserts)
+            let inserts1 = [this.d_id, locationGeohash, x];
+            let res2 = await client.query(queryText1, inserts1)
              await client.query("COMMIT");
-            console.log("RESULT AT INSERT INFEC: ", res)
+            console.log("RESULT AT INSERT INFEC: ", res2)
             return Promise.resolve(Result.Success({record:record, success:true}))
         }catch(error){
             console.log("error at insertRecord: ", error)
