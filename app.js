@@ -10,7 +10,7 @@ var media = require("./api/media")
 var bodyParser = require("body-parser")
 var morganLogger = require("morgan")
 
-let timeHashDaemon = require('./timeHashDaemon')
+// let timeHashDaemon = require('./timeHashDaemon')
 /** api v3 endpoints */
 
 
