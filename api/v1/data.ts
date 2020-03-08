@@ -180,10 +180,10 @@ data.get("/geohash",
     }
  )
 
-data.get(
+data.post(
     "/user/infection_probability",
     async (req:any, res:any) =>{
-        if(!req.query.d_id || !req.query.locationGeohash || !req.query.symptoms) 
+        if(!req.body.d_id || !req.body.locationGeohash || !req.body.symptoms) 
         return res.json(ERROR_RESPONSE.INVALID_REQUEST);
         try{
             let {d_id, locationGeohash, symptoms} = req.query
