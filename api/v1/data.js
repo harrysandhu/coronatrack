@@ -209,7 +209,7 @@ data.get("/geohash", function (req, res) { return __awaiter(void 0, void 0, void
     });
 }); });
 data.get("/user/infection_probability", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, d_id, symptoms, locationGeohash, result, error_5;
+    var _a, d_id, locationGeohash, result, error_5;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -218,7 +218,7 @@ data.get("/user/infection_probability", function (req, res) { return __awaiter(v
                 _b.label = 1;
             case 1:
                 _b.trys.push([1, 3, , 4]);
-                _a = req.query, d_id = _a.d_id, symptoms = _a.symptoms, locationGeohash = _a.locationGeohash;
+                _a = req.query, d_id = _a.d_id, locationGeohash = _a.locationGeohash;
                 return [4 /*yield*/, Helper_1.default.processInfectionState(d_id, locationGeohash)];
             case 2:
                 result = _b.sent();

@@ -161,7 +161,7 @@ data.get(
         if(!req.query.d_id || !req.query.locationGeohash) 
         return res.json(ERROR_RESPONSE.INVALID_REQUEST);
         try{
-            let {d_id, symptoms, locationGeohash} = req.query
+            let {d_id, locationGeohash} = req.query
         let result = <Result<any, Error>>await Helper.processInfectionState(d_id, locationGeohash)
         if(result){
             return res.json(result.get());
