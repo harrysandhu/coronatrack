@@ -140,7 +140,7 @@ export default class Helper{
                 //no neighbours, 
                 infProb = x;
                 //UPDATE at_datetime
-                queryText = 'UPDATE _infection SET at_datetime = NOW(), location_geohash=$1 WHERE d_id=$2 ORDER BY at_datetime DESC LIMIT 1'
+                queryText = 'UPDATE _infection SET at_datetime = NOW(), location_geohash=$1 WHERE d_id=$2 AND at_datetime IN (SELECT at_datetime FROM _infection WHERE d_id=$2 ORDER BY at_datetime DESC LIMIT 1)';
                  inserts = [locationGeohash, d_id]
                 let insertResult = await client.query(queryText, inserts)
                 await client.query("COMMIT");
