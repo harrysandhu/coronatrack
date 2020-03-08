@@ -68,6 +68,7 @@ var BASE_DEV = require('../../functions/helperConstants').BASE_DEV;
 var User_1 = __importDefault(require("../../src/User"));
 var Record_1 = __importDefault(require("../../src/Record"));
 var Result_1 = __importDefault(require("../../src/Result"));
+var Helper_1 = __importDefault(require("../../src/Helper"));
 var ErrorResponse_1 = require("../../src/helper/ErrorResponse");
 // /**DATABASE IMPORTS AND CONFIG */
 // import AWS from 'aws-sdk';
@@ -182,6 +183,53 @@ data.post("/record", verifyAuthToken, function (req, res) { return __awaiter(voi
                 error_3 = _a.sent();
                 return [2 /*return*/, res.json(error_3.get())];
             case 6: return [2 /*return*/];
+        }
+    });
+}); });
+data.get("/geohash", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, latitude, longitude, precision, result, error_4;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                if (!req.query.longitude || !req.query.latitude || !req.query.precision)
+                    return [2 /*return*/, res.json(ErrorResponse_1.ERROR_RESPONSE.INVALID_REQUEST)];
+                _b.label = 1;
+            case 1:
+                _b.trys.push([1, 3, , 4]);
+                _a = req.query, latitude = _a.latitude, longitude = _a.longitude, precision = _a.precision;
+                return [4 /*yield*/, Helper_1.default.getLocationGeohash(latitude, longitude, precision)];
+            case 2:
+                result = _b.sent();
+                return [2 /*return*/, res.json(result.get())];
+            case 3:
+                error_4 = _b.sent();
+                return [2 /*return*/, res.json(error_4.get())];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); });
+data.get("/user/infection_probability", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var _a, d_id, symptoms, locationGeohash, result, error_5;
+    return __generator(this, function (_b) {
+        switch (_b.label) {
+            case 0:
+                if (!req.query.d_id || !req.query.locationGeohash)
+                    return [2 /*return*/, res.json(ErrorResponse_1.ERROR_RESPONSE.INVALID_REQUEST)];
+                _b.label = 1;
+            case 1:
+                _b.trys.push([1, 3, , 4]);
+                _a = req.query, d_id = _a.d_id, symptoms = _a.symptoms, locationGeohash = _a.locationGeohash;
+                return [4 /*yield*/, Helper_1.default.processInfectionState(d_id, locationGeohash)];
+            case 2:
+                result = _b.sent();
+                if (result) {
+                    return [2 /*return*/, res.json(result.get())];
+                }
+                return [3 /*break*/, 4];
+            case 3:
+                error_5 = _b.sent();
+                return [2 /*return*/, res.json(error_5.get())];
+            case 4: return [2 /*return*/];
         }
     });
 }); });

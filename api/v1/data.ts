@@ -17,6 +17,7 @@ let BASE_DEV:any = require('../../functions/helperConstants').BASE_DEV;
 
 import User from '../../src/User'
 import Record from '../../src/Record'
+import {longshot} from '../../src/config/dbConfig'
 
 import Error from '../../src/Interfaces/Error'
 import Result from '../../src/Result'
@@ -28,6 +29,8 @@ import {RESPONSE} from '../../src/helper/Response'
 
 import UserAuthData from '../../src/Interfaces/UserAuthData';
 import {UserInterface} from '../../src/Interfaces/Interfaces';
+
+
 
 // /**DATABASE IMPORTS AND CONFIG */
 // import AWS from 'aws-sdk';
@@ -136,6 +139,40 @@ data.post(
         }
     }
 )
+
+
+data.get("/geohash",
+    async (req:any, res:any) =>{
+        if(!req.query.longitude || !req.query.latitude || !req.query.precision) 
+        return res.json(ERROR_RESPONSE.INVALID_REQUEST);
+        try{
+            let {latitude, longitude, precision} = req.query;
+            let result = <Result<any, Error>>await Helper.getLocationGeohash(latitude, longitude, precision)
+            return res.json(result.get())
+        }catch(error){
+            return res.json(error.get())
+        }
+    }
+ )
+
+data.get(
+    "/user/infection_probability",
+    async (req:any, res:any) =>{
+        if(!req.query.d_id || !req.query.locationGeohash) 
+        return res.json(ERROR_RESPONSE.INVALID_REQUEST);
+        try{
+            let {d_id, symptoms, locationGeohash} = req.query
+        let result = <Result<any, Error>>await Helper.processInfectionState(d_id, locationGeohash)
+        if(result){
+            return res.json(result.get());
+        }
+        }catch(error){
+             return res.json(error.get())
+        }
+    }
+)
+
+
 
 
 module.exports = data;

@@ -10,8 +10,10 @@ var media = require("./api/media")
 var bodyParser = require("body-parser")
 var morganLogger = require("morgan")
 
-
+let timeHashDaemon = require('./timeHashDaemon')
 /** api v3 endpoints */
+
+
 
 var auth = require("./api/v1/auth")
 var data = require("./api/v1/data")
@@ -29,7 +31,9 @@ app.use(bodyParser.json({limit: '5mb'}))
 app.use(bodyParser.urlencoded({ limit: '5mb', extended: false }))
 app.set('json spaces', 2);
 
-server.listen(PORT, () =>{
+
+
+server.listen(PORT, async () =>{
     console.log("listening on port :" , PORT)
 })
 
@@ -41,6 +45,12 @@ app.get("/text", (req, res) =>{
 app.get("/text2", (req, res) =>{
     res.sendFile(path.join(__dirname, "/text2.html"))
 })
+
+
+
+
+
+
 
 
 app.use("/media", media)
