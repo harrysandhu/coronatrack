@@ -186,7 +186,7 @@ data.post(
         if(!req.body.d_id || !req.body.locationGeohash || !req.body.symptoms) 
         return res.json(ERROR_RESPONSE.INVALID_REQUEST);
         try{
-            let {d_id, locationGeohash, symptoms} = req.query
+            let {d_id, locationGeohash, symptoms} = req.body
         let result = <Result<any, Error>>await Helper.processInfectionState(d_id, locationGeohash, symptoms)
         if(result){
             return res.json(result.get());
