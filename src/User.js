@@ -264,8 +264,8 @@ var User = /** @class */ (function () {
                         precision = 9;
                         locationGeohash = Geohash.encode(latitude, longitude, precision);
                         console.log("wefan\n\scojkfisaduh\n\nzxjkfsiduxzcjnkn\n\ndscizxnjk");
-                        queryText1 = 'INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime) VALUES ($1, $2, $3, NOW() )';
-                        inserts1 = [this.d_id, locationGeohash, x_1];
+                        queryText1 = 'UPDATE _infection SET at_datetime = NOW(), location_geohash=$1, infection_probability=$2 WHERE d_id = $3';
+                        inserts1 = [locationGeohash, x_1, this.d_id];
                         return [4 /*yield*/, client.query(queryText1, inserts1)];
                     case 6:
                         res2 = _b.sent();
@@ -361,31 +361,40 @@ var User = /** @class */ (function () {
     };
     User.prototype.signup = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var client, queryText, inserts, insertRes, userPayload, signOptions, authToken, successResponse, error_6;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
+            var client, _a, latitude, longitude, precision, locationGeohash, infection_probability, queryText, inserts, insertRes, insertRes2, userPayload, signOptions, authToken, successResponse, error_6;
+            return __generator(this, function (_b) {
+                switch (_b.label) {
                     case 0: return [4 /*yield*/, dbConfig_1.longshot.connect()];
                     case 1:
-                        client = _a.sent();
-                        _a.label = 2;
+                        client = _b.sent();
+                        _b.label = 2;
                     case 2:
-                        _a.trys.push([2, 6, 8, 9]);
+                        _b.trys.push([2, 7, 9, 10]);
+                        _a = this.location, latitude = _a.latitude, longitude = _a.longitude;
+                        precision = 9;
+                        locationGeohash = Geohash.encode(latitude, longitude, precision);
+                        infection_probability = 0;
                         return [4 /*yield*/, client.query("BEGIN")];
                     case 3:
-                        _a.sent();
+                        _b.sent();
                         queryText = {
                             user: 'INSERT INTO _user(d_id, u_id, age, gender, location_is_allowed, location, signup_datetime)' + ' ' +
-                                'VALUES ($1, $2, $3, $4, $5, $6, NOW())'
+                                'VALUES ($1, $2, $3, $4, $5, $6, NOW())',
+                            infection: 'INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime) VALUES ($1, $2, $3, NOW() )'
                         };
                         inserts = {
-                            user: this.toarray()
+                            user: this.toarray(),
+                            infection: [this.d_id, locationGeohash, infection_probability]
                         };
                         return [4 /*yield*/, client.query(queryText.user, inserts.user)];
                     case 4:
-                        insertRes = _a.sent();
-                        return [4 /*yield*/, client.query("COMMIT")];
+                        insertRes = _b.sent();
+                        return [4 /*yield*/, client.query(queryText.infection, inserts.infection)];
                     case 5:
-                        _a.sent();
+                        insertRes2 = _b.sent();
+                        return [4 /*yield*/, client.query("COMMIT")];
+                    case 6:
+                        _b.sent();
                         userPayload = this.repr();
                         signOptions = {
                             subject: this.d_id,
@@ -398,17 +407,17 @@ var User = /** @class */ (function () {
                             success: true
                         };
                         return [2 /*return*/, Promise.resolve(Result_1.default.Success(successResponse))];
-                    case 6:
-                        error_6 = _a.sent();
+                    case 7:
+                        error_6 = _b.sent();
                         console.log("error at user signup", error_6);
                         return [4 /*yield*/, client.query("ROLLBACK")];
-                    case 7:
-                        _a.sent();
-                        return [2 /*return*/, Promise.reject(Result_1.default.Failure(ErrorResponse_1.ERROR_RESPONSE.ERR_SYS))];
                     case 8:
+                        _b.sent();
+                        return [2 /*return*/, Promise.reject(Result_1.default.Failure(ErrorResponse_1.ERROR_RESPONSE.ERR_SYS))];
+                    case 9:
                         client.release();
                         return [7 /*endfinally*/];
-                    case 9: return [2 /*return*/];
+                    case 10: return [2 /*return*/];
                 }
             });
         });

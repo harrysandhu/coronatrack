@@ -261,7 +261,7 @@ export default class User {
             let queryText = {
                 user: 'INSERT INTO _user(d_id, u_id, age, gender, location_is_allowed, location, signup_datetime)' + ' '+
                         'VALUES ($1, $2, $3, $4, $5, $6, NOW())',
-                infection:  'INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime) VALUES ($1, $2, $3, NOW() )';
+                infection:  'INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime) VALUES ($1, $2, $3, NOW() )'
             }
 
 
@@ -271,7 +271,7 @@ export default class User {
             }
 
             let insertRes = await client.query(queryText.user, inserts.user)
-            let insertRes2 = await client.query(queryText.infection, insert.infection)
+            let insertRes2 = await client.query(queryText.infection, inserts.infection)
             await client.query("COMMIT");
             
             let userPayload = this.repr();
