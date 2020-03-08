@@ -18,13 +18,13 @@ var Record = /** @class */ (function () {
     function Record(init) {
         this.d_id = "";
         this.location = {};
-        this.recordDateTime = new Date();
+        this.record_datetime = new Date();
         this.symptoms = {
-            fever: new Symptom_1.default({ name: "Fever", weight: Weights_1.Weights.fever, state: SymptomState_1.SymptomState.NO }),
             cold: new Symptom_1.default({ name: "Cold", weight: Weights_1.Weights.cold, state: SymptomState_1.SymptomState.NO }),
             cough: new Symptom_1.default({ name: "Cough", weight: Weights_1.Weights.cough, state: SymptomState_1.SymptomState.NO }),
-            breathing: new Symptom_1.default({ name: "Breathing Difficulty", weight: Weights_1.Weights.breathing, state: SymptomState_1.SymptomState.NO }),
-            bodyAche: new Symptom_1.default({ name: "Body Ache", weight: Weights_1.Weights.bodyAche, state: SymptomState_1.SymptomState.NO })
+            fever: new Symptom_1.default({ name: "Fever", weight: Weights_1.Weights.fever, state: SymptomState_1.SymptomState.NO }),
+            bodyAche: new Symptom_1.default({ name: "Body Ache", weight: Weights_1.Weights.bodyAche, state: SymptomState_1.SymptomState.NO }),
+            breathing: new Symptom_1.default({ name: "Breathing Difficulty", weight: Weights_1.Weights.breathing, state: SymptomState_1.SymptomState.NO })
         };
         try {
             if (init) {
@@ -40,15 +40,19 @@ var Record = /** @class */ (function () {
         return new Record({
             d_id: d_id,
             location: location,
-            recordDateTime: date,
+            record_datetime: date,
             symptoms: {
-                fever: new Symptom_1.default({ name: "Fever", weight: Weights_1.Weights.fever, state: SymptomState_1.SymptomState.NO }),
                 cold: new Symptom_1.default({ name: "Cold", weight: Weights_1.Weights.cold, state: SymptomState_1.SymptomState.NO }),
                 cough: new Symptom_1.default({ name: "Cough", weight: Weights_1.Weights.cough, state: SymptomState_1.SymptomState.NO }),
-                breathing: new Symptom_1.default({ name: "Breathing Difficulty", weight: Weights_1.Weights.breathing, state: SymptomState_1.SymptomState.NO }),
-                bodyAche: new Symptom_1.default({ name: "Body Ache", weight: Weights_1.Weights.bodyAche, state: SymptomState_1.SymptomState.NO })
+                fever: new Symptom_1.default({ name: "Fever", weight: Weights_1.Weights.fever, state: SymptomState_1.SymptomState.NO }),
+                bodyAche: new Symptom_1.default({ name: "Body Ache", weight: Weights_1.Weights.bodyAche, state: SymptomState_1.SymptomState.NO }),
+                breathing: new Symptom_1.default({ name: "Breathing Difficulty", weight: Weights_1.Weights.breathing, state: SymptomState_1.SymptomState.NO })
             }
         });
+    };
+    Record.isValidRI = function (r) {
+        return r && r.d_id && r.record_datetime && r.location
+            && r.symptoms;
     };
     return Record;
 }());

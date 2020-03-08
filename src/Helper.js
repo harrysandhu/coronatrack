@@ -58,6 +58,10 @@ var FS = __importStar(require("./settings/FieldSettings"));
 var dbConfig_1 = require("./config/dbConfig");
 var ErrorResponse_1 = require("./helper/ErrorResponse");
 var Response_1 = require("./helper/Response");
+var Symptom_1 = __importDefault(require("./Symptom"));
+var Weights_1 = require("./Weights");
+var SymptomState_1 = require("./SymptomState");
+var Geohash = require('ngeohash');
 var Helper = /** @class */ (function () {
     function Helper() {
     }
@@ -75,6 +79,172 @@ var Helper = /** @class */ (function () {
             result += chars[Math.floor(Math.random() * charLength)];
         }
         return result;
+    };
+    Helper.getLocationGeohash = function (latitude, longitude, precision) {
+        return __awaiter(this, void 0, void 0, function () {
+            var locationGeohash;
+            return __generator(this, function (_a) {
+                locationGeohash = Geohash.encode(latitude, longitude, precision);
+                if (locationGeohash) {
+                    return [2 /*return*/, Promise.resolve(Result_1.default.Success(locationGeohash))];
+                }
+                return [2 /*return*/, Promise.reject(Result_1.default.Failure(ErrorResponse_1.ERROR_RESPONSE.ERR_SYS))];
+            });
+        });
+    };
+    Helper.getRange = function (n) {
+        switch (true) {
+            case (n <= 20):
+                return 0;
+            case (n > 20 && n <= 40):
+                return 1;
+            case (n > 40 && n <= 60):
+                return 2;
+            case (n > 60 && n <= 85):
+                return 3;
+            default:
+                return 4;
+        }
+    };
+    Helper.rangeDiff = function (x, m) {
+        return Helper.getRange(m) - Helper.getRange(x);
+    };
+    Helper.rms = function (nums) {
+        if (nums.length > 0) {
+            var sqsum = 0;
+            for (var i = 0; i < nums.length; i++) {
+                sqsum += nums[i] * nums[i];
+            }
+            return Math.sqrt(sqsum / nums.length);
+        }
+        return 0;
+    };
+    Helper.InfectionProbability = function (x, a, m, rd, np) {
+        if (x <= a) {
+            var rmsval = Helper.rms(np);
+            if (rd <= 0) {
+                return rmsval;
+            }
+            else if (rd == 1) {
+                return Helper.rms([rmsval, m]);
+            }
+            else {
+                return Helper.rms([Helper.rms([rmsval, m]), rmsval, m]);
+            }
+        }
+        else {
+            if (rd <= 0) {
+                return x;
+            }
+            else {
+                return (x + m) / 2;
+            }
+        }
+        return x;
+    };
+    Helper.processInfectionState = function (d_id, locationGeohash) {
+        return __awaiter(this, void 0, void 0, function () {
+            var client, symptoms, queryText, inserts, result, e_1, x_1, a, m, rd, neighboursArr, np, queryText, inserts, result, infProb, i, sum_np, i, insertResult, error_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, dbConfig_1.longshot.connect()];
+                    case 1:
+                        client = _a.sent();
+                        _a.label = 2;
+                    case 2:
+                        _a.trys.push([2, 5, 6, 7]);
+                        //get recent record, if not found, return empty record
+                        return [4 /*yield*/, client.query('BEGIN')];
+                    case 3:
+                        //get recent record, if not found, return empty record
+                        _a.sent();
+                        queryText = 'SELECT DISTINCT d_id, symptoms, MIN(NOW()-record_datetime) FROM _record WHERE d_id = $1 GROUP BY d_id, symptoms';
+                        inserts = [d_id];
+                        return [4 /*yield*/, client.query(queryText, inserts)];
+                    case 4:
+                        result = _a.sent();
+                        if (result.rows.length == 0) {
+                            //return new empty record
+                            symptoms = {
+                                cold: new Symptom_1.default({ name: "Cold", weight: Weights_1.Weights.cold, state: SymptomState_1.SymptomState.MILD }),
+                                cough: new Symptom_1.default({ name: "Cough", weight: Weights_1.Weights.cough, state: SymptomState_1.SymptomState.NO }),
+                                fever: new Symptom_1.default({ name: "Fever", weight: Weights_1.Weights.fever, state: SymptomState_1.SymptomState.MILD }),
+                                bodyAche: new Symptom_1.default({ name: "Body Ache", weight: Weights_1.Weights.bodyAche, state: SymptomState_1.SymptomState.NO }),
+                                breathing: new Symptom_1.default({ name: "Breathing Difficulty", weight: Weights_1.Weights.breathing, state: SymptomState_1.SymptomState.MILD })
+                            };
+                        }
+                        else {
+                            symptoms = result.rows[0]['symptoms'];
+                        }
+                        return [3 /*break*/, 7];
+                    case 5:
+                        e_1 = _a.sent();
+                        console.log("error : ", e_1);
+                        return [2 /*return*/, Promise.reject(Result_1.default.Failure(ErrorResponse_1.ERROR_RESPONSE.ERR_SYS))];
+                    case 6:
+                        client.release();
+                        return [7 /*endfinally*/];
+                    case 7: return [4 /*yield*/, dbConfig_1.longshot.connect()];
+                    case 8:
+                        client = _a.sent();
+                        _a.label = 9;
+                    case 9:
+                        _a.trys.push([9, 14, 15, 16]);
+                        x_1 = 0, a = 0, m = 0, rd = 0;
+                        Object.keys(symptoms).map(function (symptom) {
+                            x_1 += (symptoms[symptom]['state'] * Weights_1.Weights[symptom]);
+                        });
+                        neighboursArr = Geohash.neighbors(locationGeohash);
+                        np = [];
+                        return [4 /*yield*/, client.query('BEGIN')];
+                    case 10:
+                        _a.sent();
+                        queryText = 'SELECT DISTINCT location_geohash, infection_probability, MIN(NOW() - at_datetime) FROM _infection ' +
+                            'WHERE location_geohash IN ($1, $2, $3, $4, $5, $6, $7, $8) GROUP BY location_geohash, infection_probability';
+                        inserts = neighboursArr;
+                        return [4 /*yield*/, client.query(queryText, inserts)];
+                    case 11:
+                        result = _a.sent();
+                        infProb = 0;
+                        if (result.rows.length == 0) {
+                            //no neighbours, 
+                            infProb = x_1;
+                        }
+                        else {
+                            for (i = 0; i < result.rows.length; i++) {
+                                np.push(result.rows[i]['infection_probability']);
+                            }
+                            m = Math.max.apply(Math, np);
+                            sum_np = 0;
+                            for (i = 0; i < np.length; i++) {
+                                sum_np += np[i];
+                            }
+                            a = (x_1 + sum_np) / (np.length + 1);
+                            rd = Helper.rangeDiff(x_1, a);
+                            infProb = Helper.InfectionProbability(x_1, a, m, rd, np);
+                        }
+                        queryText = 'INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime)' + ' '
+                            + 'VALUES ($1, $2, $3, NOW())';
+                        inserts = [d_id, locationGeohash, infProb];
+                        return [4 /*yield*/, client.query(queryText, inserts)];
+                    case 12:
+                        insertResult = _a.sent();
+                        return [4 /*yield*/, client.query("COMMIT")];
+                    case 13:
+                        _a.sent();
+                        console.log(insertResult);
+                        return [2 /*return*/, Promise.resolve(Result_1.default.Success({ infection_probability: infProb, success: true }))];
+                    case 14:
+                        error_1 = _a.sent();
+                        console.log(error_1);
+                        return [2 /*return*/, Promise.reject(Result_1.default.Failure(ErrorResponse_1.ERROR_RESPONSE.ERR_SYS))];
+                    case 15:
+                        client.release();
+                        return [7 /*endfinally*/];
+                    case 16: return [2 /*return*/];
+                }
+            });
+        });
     };
     // /**	
     // * Checks and validates username.

@@ -78,7 +78,7 @@ data.get(
 )
 
 data.get(
-    "/user/record",
+    "/user/latest_record",
     verifyAuthToken,
       async (req:any, res:any) =>{
           
@@ -101,6 +101,31 @@ data.get(
 )
 
 
+data.get(
+    "/user/record",
+    verifyAuthToken,
+      async (req:any, res:any) =>{
+          if(!req.query.dateISO) return res.json(ERROR_RESPONSE.INVALID_REQUEST);
+         try{
+              let ur = <Result<any, Error>>await User.jwtVerifyUser(req.token, publicKey);
+              console.log("UR: ", ur)
+                if(User.isValidUI(ur.get())){
+                    let u = ur.get()
+                    //user is verified
+                    console.log("userresult at /record: ", ur)
+                    let user = new User(u);
+                    let result = <Result<any, Error>>await user.getRecordByDate(dateISO);
+                    return res.json(result.get())
+                }
+                throw Result.Failure(ERROR_RESPONSE.user.authException)
+        }catch(error){
+            return res.json(error.get())
+        }
+    }
+)
+
+
+
 /*
     record > {
         d_id
@@ -117,7 +142,7 @@ data.post(
     "/record",
     verifyAuthToken,
       async (req:any, res:any) =>{
-        if(!req.body.record) return res.json(ERROR_RESPONSE.INVALID_REQUEST);
+        if(!req.body.record || !req.body.dateISO) return res.json(ERROR_RESPONSE.INVALID_REQUEST);
         let record = {...req.body.record}
         if(!Record.isValidRI(record)) return res.json(ERROR_RESPONSE.INVALID_REQUEST);
         
@@ -129,7 +154,7 @@ data.post(
                     //user is verified
                     console.log("userresult at /record: ", ur)
                     let user = new User(u);
-                    let result = <Result<any, Error>>await user.insertRecord(record)
+                    let result = <Result<any, Error>>await user.insertRecord(record, dateISO)
                     return res.json(result.get())
                   
                 }
@@ -158,11 +183,11 @@ data.get("/geohash",
 data.get(
     "/user/infection_probability",
     async (req:any, res:any) =>{
-        if(!req.query.d_id || !req.query.locationGeohash) 
+        if(!req.query.d_id || !req.query.locationGeohash || !req.query.symptoms) 
         return res.json(ERROR_RESPONSE.INVALID_REQUEST);
         try{
             let {d_id, locationGeohash} = req.query
-        let result = <Result<any, Error>>await Helper.processInfectionState(d_id, locationGeohash)
+        let result = <Result<any, Error>>await Helper.processInfectionState(d_id, locationGeohash, symptoms)
         if(result){
             return res.json(result.get());
         }

@@ -111,40 +111,11 @@ export default class Helper{
         return x;
     }
 
-    static async processInfectionState(d_id:string, locationGeohash:string )
+    static async processInfectionState(d_id:string, locationGeohash:string, symptoms:any, dateISO:string )
     : Promise<Result<any, Error>> 
     {   
-         let client = await longshot.connect()
-         let symptoms:any;
-        try{    
-            //get recent record, if not found, return empty record
-            await client.query('BEGIN')
-            let queryText = 'SELECT DISTINCT d_id, symptoms, MIN(NOW()-record_datetime) FROM _record WHERE d_id = $1 GROUP BY d_id, symptoms';
-            let inserts = [d_id];
-            let result = await client.query(queryText, inserts)
 
-            if(result.rows.length == 0){
-                //return new empty record
-                symptoms = {
-                cold: new Symptom({name: "Cold",weight: Weights.cold, state:SymptomState.MILD}),
-                cough: new Symptom({name:"Cough", weight: Weights.cough,state: SymptomState.NO}),
-                fever:new Symptom({name: "Fever",weight: Weights.fever, state:SymptomState.MILD}),
-                bodyAche: new Symptom({name:"Body Ache",weight: Weights.bodyAche,state:SymptomState.NO}),
-                breathing: new Symptom({name:"Breathing Difficulty", weight:Weights.breathing, state:SymptomState.MILD})
-            }
-            }else{
-                symptoms = result.rows[0]['symptoms']
-            }
-
-
-        }catch(e){
-            console.log("error : ", e)
-             return Promise.reject(Result.Failure(ERROR_RESPONSE.ERR_SYS))
-        }finally{
-            client.release()
-        }
-     
-       client = await longshot.connect()
+     let  client = await longshot.connect()
         try{
                let x = 0, a = 0, m = 0, rd = 0;
         Object.keys(symptoms).map((symptom) =>{
@@ -154,14 +125,26 @@ export default class Helper{
 
           let np:Array<number> = [];
             await client.query('BEGIN')
-            let queryText = 'SELECT DISTINCT location_geohash, infection_probability, MIN(NOW() - at_datetime) FROM _infection '+
-                            'WHERE location_geohash IN ($1, $2, $3, $4, $5, $6, $7, $8) GROUP BY location_geohash, infection_probability';
+
+
+            /*
+            * _infection neigbours near the user, reported within last 15 mins
+            */
+            let queryText = 'SELECT DISTINCT location_geohash, infection_probability, MIN(AGE(NOW(), at_datetime)) FROM _infection'+
+                +' '+ 'WHERE EXTRACT(MINUTE FROM AGE(NOW(),at_datetime)) < 15 '
+                +' '+'AND location_geohash IN($1, $2, $3, $4, $5, $6, $7, $8) GROUP BY location_geohash, infection_probability'
             let inserts = neighboursArr;
             let result = await client.query(queryText, inserts)
             let infProb = 0;
             if(result.rows.length == 0){
                 //no neighbours, 
                 infProb = x;
+                //UPDATE at_datetime
+                queryText = 'UPDATE _infection SET at_datetime = NOW() AND location_geohash=$1 WHERE d_id=$2 ORDER BY at_datetime DESC LIMIT 1'
+                 inserts = [locationGeohash, d_id]
+                let insertResult = await client.query(queryText, inserts)
+                await client.query("COMMIT");
+                return Promise.resolve(Result.Success({infection_probability:infProb,success:true}))
             }else{
               
                 for(let i = 0; i < result.rows.length; i++){
@@ -178,14 +161,15 @@ export default class Helper{
                 a = (x + sum_np) / (np.length + 1);
                 rd = Helper.rangeDiff(x, a);
                   infProb = Helper.InfectionProbability(x, a, m, rd, np);
-            }
+         
             
-                queryText = 'INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime)' + ' '
-                            + 'VALUES ($1, $2, $3, NOW())'
-                inserts = [d_id, locationGeohash, infProb]
+                queryText = "INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime)" + " "
+                            + "VALUES ($1, $2, $3, NOW())"
+                inserts = [d_id, locationGeohash, infProb, dateISO]
                 let insertResult = await client.query(queryText, inserts)
                 await client.query("COMMIT");
                 console.log(insertResult)
+               }
               
                 return Promise.resolve(Result.Success({infection_probability:infProb,success:true}))
                 

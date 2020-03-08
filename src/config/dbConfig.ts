@@ -29,8 +29,26 @@ export const longshot = new Pool({
 
 
 //postgresql://harryxsandhu:gxbxmfy039gdph44@firestore-x-1-do-user-1754324-0.db.ondigitalocean.com:25060/firestoredb?sslmode=require
-x('fewsa', 'g');
 
+
+// // get latest timehash and create after every 60 mins
+// export var timelong = 2;
+
+
+// getTimeHash();
+
+
+// export async function getTimeHash(){
+//     setTimeout(() => {
+//        timelong = timelong + 3;
+//        console.log(timelong);
+//     }, 300);
+// }
+
+
+
+
+//
 async function x(username:string, uId?:string){
  if(uId){
     const client = await longshot.connect();

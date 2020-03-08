@@ -57,7 +57,16 @@ exports.longshot = new pg_1.Pool({
 });
 //  postgresql://longshot420:YkqW8ThBtNOlqRAUv2eW@longshot-dev-db.c8nz7hvudrch.us-west-2.rds.amazonaws.com:5230/longshotdevdb
 //postgresql://harryxsandhu:gxbxmfy039gdph44@firestore-x-1-do-user-1754324-0.db.ondigitalocean.com:25060/firestoredb?sslmode=require
-x('fewsa', 'g');
+// // get latest timehash and create after every 60 mins
+// export var timelong = 2;
+// getTimeHash();
+// export async function getTimeHash(){
+//     setTimeout(() => {
+//        timelong = timelong + 3;
+//        console.log(timelong);
+//     }, 300);
+// }
+//
 function x(username, uId) {
     return __awaiter(this, void 0, void 0, function () {
         var client, queryText, res, e_1;

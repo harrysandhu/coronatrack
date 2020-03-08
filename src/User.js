@@ -76,8 +76,7 @@ var User = /** @class */ (function () {
     }
     User.isValidUI = function (u) {
         return u && u.d_id && u.u_id && u.age
-            && u.gender && u.location
-            && typeof (u.locationIsAllowed) === "boolean";
+            && u.gender && u.location;
     };
     User.jwtVerifyUser = function (requestToken, publicKey) {
         return __awaiter(this, void 0, void 0, function () {
@@ -107,7 +106,7 @@ var User = /** @class */ (function () {
             });
         });
     };
-    User.prototype.getRecordByDate = function (cdate) {
+    User.prototype.getLatestRecord = function () {
         return __awaiter(this, void 0, void 0, function () {
             var client, queryText, inserts, result, error_1;
             return __generator(this, function (_a) {
@@ -117,35 +116,38 @@ var User = /** @class */ (function () {
                         client = _a.sent();
                         _a.label = 2;
                     case 2:
-                        _a.trys.push([2, 5, , 6]);
+                        _a.trys.push([2, 5, 6, 7]);
                         return [4 /*yield*/, client.query('BEGIN')];
                     case 3:
                         _a.sent();
-                        queryText = 'SELECT * from _record WHERE d_id=$1 AND' + ' '
-                            + 'DATE(record_datetime) = DATE($2) ORDER BY record_datetime DESC LIMIT 1';
-                        inserts = [this.d_id, cdate];
+                        queryText = 'SELECT * from _record WHERE d_id=$1' + ' '
+                            + 'ORDER BY record_datetime DESC LIMIT 1';
+                        inserts = [this.d_id];
                         return [4 /*yield*/, client.query(queryText, inserts)];
                     case 4:
                         result = _a.sent();
                         if (result.rows.length != 0) {
                             console.log(result.rows[0]);
                             // let newRec = new Record(result.rows[0]);
-                            return [2 /*return*/, Promise.resolve(Result_1.default.Success({ record: result.rows[0] }))];
+                            return [2 /*return*/, Promise.resolve(Result_1.default.Success({ record: new Record_1.default(result.rows[0]), isEmptyRecord: false }))];
                         }
                         else {
-                            return [2 /*return*/, Promise.resolve(Result_1.default.Success({ record: Record_1.default.getEmptyRecord(this.d_id, cdate, this.location) }))];
+                            return [2 /*return*/, Promise.resolve(Result_1.default.Success({ record: Record_1.default.getEmptyRecord(this.d_id, "", this.location), isEmptyRecord: true }))];
                         }
-                        return [3 /*break*/, 6];
+                        return [3 /*break*/, 7];
                     case 5:
                         error_1 = _a.sent();
                         console.log(error_1);
                         return [2 /*return*/, Promise.reject(Result_1.default.Failure(ErrorResponse_1.ERROR_RESPONSE.user.authException))];
-                    case 6: return [2 /*return*/];
+                    case 6:
+                        client.release();
+                        return [7 /*endfinally*/];
+                    case 7: return [2 /*return*/];
                 }
             });
         });
     };
-    User.prototype.getAllRecords = function () {
+    User.prototype.getRecordByDate = function (cdate) {
         return __awaiter(this, void 0, void 0, function () {
             var client, queryText, inserts, result, error_2;
             return __generator(this, function (_a) {
@@ -155,7 +157,48 @@ var User = /** @class */ (function () {
                         client = _a.sent();
                         _a.label = 2;
                     case 2:
-                        _a.trys.push([2, 5, , 6]);
+                        _a.trys.push([2, 5, 6, 7]);
+                        return [4 /*yield*/, client.query('BEGIN')];
+                    case 3:
+                        _a.sent();
+                        queryText = 'SELECT * from _record WHERE d_id=$1 AND' + ' '
+                            + 'record_datetime = $2 ORDER BY record_datetime DESC LIMIT 1';
+                        inserts = [this.d_id, cdate];
+                        return [4 /*yield*/, client.query(queryText, inserts)];
+                    case 4:
+                        result = _a.sent();
+                        if (result.rows.length != 0) {
+                            console.log(result.rows[0]);
+                            // let newRec = new Record(result.rows[0]);
+                            return [2 /*return*/, Promise.resolve(Result_1.default.Success({ record: result.rows[0], isEmptyRecord: false }))];
+                        }
+                        else {
+                            return [2 /*return*/, Promise.resolve(Result_1.default.Success({ record: Record_1.default.getEmptyRecord(this.d_id, "", this.location), isEmptyRecord: true }))];
+                        }
+                        return [3 /*break*/, 7];
+                    case 5:
+                        error_2 = _a.sent();
+                        console.log(error_2);
+                        return [2 /*return*/, Promise.reject(Result_1.default.Failure(ErrorResponse_1.ERROR_RESPONSE.user.authException))];
+                    case 6:
+                        client.release();
+                        return [7 /*endfinally*/];
+                    case 7: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    User.prototype.getAllRecords = function () {
+        return __awaiter(this, void 0, void 0, function () {
+            var client, queryText, inserts, result, error_3;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, dbConfig_1.longshot.connect()];
+                    case 1:
+                        client = _a.sent();
+                        _a.label = 2;
+                    case 2:
+                        _a.trys.push([2, 5, 6, 7]);
                         return [4 /*yield*/, client.query('BEGIN')];
                     case 3:
                         _a.sent();
@@ -167,17 +210,61 @@ var User = /** @class */ (function () {
                         if (result.rows.length != 0) {
                             console.log(result.rows[0]);
                             // let newRec = new Record(result.rows[0]);
-                            return [2 /*return*/, Promise.resolve(Result_1.default.Success({ record: result.rows }))];
+                            return [2 /*return*/, Promise.resolve(Result_1.default.Success({ record: result.rows[0], isEmptyRecord: false }))];
                         }
                         else {
-                            return [2 /*return*/, Promise.resolve(Result_1.default.Success({ record: Record_1.default.getEmptyRecord(this.d_id, "", this.location) }))];
+                            return [2 /*return*/, Promise.resolve(Result_1.default.Success({ record: Record_1.default.getEmptyRecord(this.d_id, "", this.location), isEmptyRecord: true }))];
                         }
-                        return [3 /*break*/, 6];
+                        return [3 /*break*/, 7];
                     case 5:
-                        error_2 = _a.sent();
-                        console.log(error_2);
-                        return [2 /*return*/, Promise.reject(Result_1.default.Failure(ErrorResponse_1.ERROR_RESPONSE.user.authException))];
-                    case 6: return [2 /*return*/];
+                        error_3 = _a.sent();
+                        console.log(error_3);
+                        return [2 /*return*/, Promise.reject(Result_1.default.Failure(ErrorResponse_1.ERROR_RESPONSE.ERR_SYS))];
+                    case 6:
+                        client.release();
+                        return [7 /*endfinally*/];
+                    case 7: return [2 /*return*/];
+                }
+            });
+        });
+    };
+    User.prototype.insertRecord = function (record) {
+        return __awaiter(this, void 0, void 0, function () {
+            var client, queryText, inserts, res, error_4;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        console.log("insert record start: ", JSON.stringify({ location: record.location }));
+                        return [4 /*yield*/, dbConfig_1.longshot.connect()];
+                    case 1:
+                        client = _a.sent();
+                        _a.label = 2;
+                    case 2:
+                        _a.trys.push([2, 6, 8, 9]);
+                        return [4 /*yield*/, client.query('BEGIN')];
+                    case 3:
+                        _a.sent();
+                        queryText = 'INSERT INTO _record(record_datetime, d_id, location, symptoms) VALUES (DATE(NOW()), $1, $2, $3)';
+                        inserts = [this.d_id, JSON.stringify(record.location), JSON.stringify(record.symptoms)];
+                        return [4 /*yield*/, client.query(queryText, inserts)];
+                    case 4:
+                        res = _a.sent();
+                        return [4 /*yield*/, client.query("COMMIT")];
+                    case 5:
+                        _a.sent();
+                        console.log("RESULT AT INSERTRECORD: ", res);
+                        return [2 /*return*/, Promise.resolve(Result_1.default.Success({ record: record, success: true }))];
+                    case 6:
+                        error_4 = _a.sent();
+                        console.log("error at insertRecord: ", error_4);
+                        return [4 /*yield*/, client.query('ROLLBACK')];
+                    case 7:
+                        _a.sent();
+                        return [2 /*return*/, Promise.reject(Result_1.default.Failure(ErrorResponse_1.ERROR_RESPONSE.ERR_SYS))];
+                    case 8:
+                        client.release();
+                        return [7 /*endfinally*/];
+                    case 9: return [2 /*return*/];
                 }
             });
         });
@@ -208,7 +295,7 @@ var User = /** @class */ (function () {
     };
     User.checkIfUserExists = function (d_id) {
         return __awaiter(this, void 0, void 0, function () {
-            var client, queryText, inserts, res, userPayload, signOptions, authToken, successResponse, error_3;
+            var client, queryText, inserts, res, userPayload, signOptions, authToken, successResponse, error_5;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, dbConfig_1.longshot.connect()];
@@ -242,7 +329,7 @@ var User = /** @class */ (function () {
                         }
                         return [2 /*return*/, Promise.resolve(Result_1.default.Success({ success: false }))];
                     case 5:
-                        error_3 = _a.sent();
+                        error_5 = _a.sent();
                         return [2 /*return*/, Promise.reject(Result_1.default.Failure(ErrorResponse_1.ERROR_RESPONSE.ERR_SYS))];
                     case 6:
                         client.release();
@@ -254,7 +341,7 @@ var User = /** @class */ (function () {
     };
     User.prototype.signup = function () {
         return __awaiter(this, void 0, void 0, function () {
-            var client, queryText, inserts, insertRes, userPayload, signOptions, authToken, successResponse, error_4;
+            var client, queryText, inserts, insertRes, userPayload, signOptions, authToken, successResponse, error_6;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0: return [4 /*yield*/, dbConfig_1.longshot.connect()];
@@ -267,7 +354,7 @@ var User = /** @class */ (function () {
                     case 3:
                         _a.sent();
                         queryText = {
-                            user: 'INSERT INTO _user(d_id, u_id, age, gender, location_is_allowed, location signup_datetime)' + ' ' +
+                            user: 'INSERT INTO _user(d_id, u_id, age, gender, location_is_allowed, location, signup_datetime)' + ' ' +
                                 'VALUES ($1, $2, $3, $4, $5, $6, NOW())'
                         };
                         inserts = {
@@ -292,8 +379,8 @@ var User = /** @class */ (function () {
                         };
                         return [2 /*return*/, Promise.resolve(Result_1.default.Success(successResponse))];
                     case 6:
-                        error_4 = _a.sent();
-                        console.log("error at user signup", error_4);
+                        error_6 = _a.sent();
+                        console.log("error at user signup", error_6);
                         return [4 /*yield*/, client.query("ROLLBACK")];
                     case 7:
                         _a.sent();
@@ -309,3 +396,41 @@ var User = /** @class */ (function () {
     return User;
 }());
 exports.default = User;
+// INSERT INTO _record(record_datetime, d_id, location, symptoms) VALUES(NOW(), '0E1B0311-6950-4D8B-8AF4-D1BC94DC3478', '{	"location": {
+//     "coords": {
+//       "speed": -1,
+//       "heading": -1,
+//       "accuracy": 5,
+//       "altitude": 0,
+//       "latitude": 37.785834,
+//       "longitude": -122.406417,
+//       "altitudeAccuracy": -1
+//     },
+//     "timestamp": 1583362321134.426
+//   }}', '{	"symptoms":{
+//   "fever": {
+//     "name": "Fever",
+//     "weight": 12.5,
+//     "state": 2
+//   },
+//   "cold": {
+//     "name": "Cold",
+//     "weight": 15,
+//     "state": 2
+//   },
+//   "cough": {
+//     "name": "Cough",
+//     "weight": 12.5,
+//     "state": 2
+//   },
+//   "breathing": {
+//     "name": "Breathing Difficulty",
+//     "weight": 8,
+//     "state": 0
+//   },
+//   "bodyAche": {
+//     "name": "Body Ache",
+//     "weight": 2,
+//     "state": 0
+//   }
+// }}')

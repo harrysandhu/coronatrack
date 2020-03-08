@@ -94,14 +94,14 @@ export default class User {
         }
     }
 
-    async getRecordByDate(cdate:string): Promise<Result<any, Error>>{
+    async getRecordByDate(dateISO:string): Promise<Result<any, Error>>{
         const client = await longshot.connect();
 
         try{
             await client.query('BEGIN')
             let queryText = 'SELECT * from _record WHERE d_id=$1 AND' + ' ' 
-                            +'record_datetime = $2 ORDER BY record_datetime DESC LIMIT 1';
-            let inserts = [this.d_id, cdate]
+                            +'DATE(record_datetime) = DATE($2)';
+            let inserts = [this.d_id, dateISO]
             let result = await client.query(queryText, inserts)
             if(result.rows.length != 0){
                 console.log(result.rows[0])
@@ -141,16 +141,31 @@ export default class User {
         }
     }
 
-    async insertRecord(record:RecordInterface) : Promise<Result<any, Error>>{
+    async insertRecord(record:RecordInterface, dateISO:string) : Promise<Result<any, Error>>{
         console.log("insert record start: ", JSON.stringify({location:record.location}))
         const client = await longshot.connect()
         try{
             await client.query('BEGIN')
-            let queryText = 'INSERT INTO _record(record_datetime, d_id, location, symptoms) VALUES (DATE(NOW()), $1, $2, $3)';
-            let inserts = [this.d_id, JSON.stringify(record.location), JSON.stringify(record.symptoms)]
+            let queryText = "INSERT INTO _record(record_datetime, d_id, location, symptoms) VALUES (TIMESTAMP '$1', $2, $3, $4)";
+            let inserts = [dateISO, this.d_id, JSON.stringify(record.location), JSON.stringify(record.symptoms)]
             let res = await client.query(queryText, inserts)
-             await client.query("COMMIT");
+              await client.query("COMMIT");
             console.log("RESULT AT INSERTRECORD: ", res)
+            
+            let x = 0;
+             Object.keys(symptoms).map((symptom) =>{
+            x += (symptoms[symptom]['state'] * Weights[symptom])
+            })
+            let {latitude, longitude } = record.location.coords
+            let precision = 9;
+            let locationGeohash = Geohash.encode(latitude, longitude, precision);
+
+            queryText = "INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime)'
+                        ""  + "VALUES ($1, $2, $3, NOW() ";
+            inserts = [this.d_id, locationGeohash, x];
+            res = await client.query(queryText, inserts)
+             await client.query("COMMIT");
+            console.log("RESULT AT INSERT INFEC: ", res)
             return Promise.resolve(Result.Success({record:record, success:true}))
         }catch(error){
             console.log("error at insertRecord: ", error)
