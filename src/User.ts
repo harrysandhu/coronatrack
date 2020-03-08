@@ -160,7 +160,7 @@ export default class User {
             let precision = 9;
             let locationGeohash = Geohash.encode(latitude, longitude, precision);
 
-            queryText = "INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime)'
+            queryText = "INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime)"
                         ""  + "VALUES ($1, $2, $3, NOW() ";
             inserts = [this.d_id, locationGeohash, x];
             res = await client.query(queryText, inserts)

@@ -114,7 +114,7 @@ data.get("/record", verifyAuthToken, function (req, res) { return __awaiter(void
         }
     });
 }); });
-data.get("/user/record", verifyAuthToken, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+data.get("/user/latest_record", verifyAuthToken, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var ur, u, user, result, error_2;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -141,6 +141,37 @@ data.get("/user/record", verifyAuthToken, function (req, res) { return __awaiter
         }
     });
 }); });
+data.get("/user/record", verifyAuthToken, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var ur, u, user, result, error_3;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                if (!req.query.dateISO)
+                    return [2 /*return*/, res.json(ErrorResponse_1.ERROR_RESPONSE.INVALID_REQUEST)];
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 5, , 6]);
+                return [4 /*yield*/, User_1.default.jwtVerifyUser(req.token, publicKey)];
+            case 2:
+                ur = _a.sent();
+                console.log("UR: ", ur);
+                if (!User_1.default.isValidUI(ur.get())) return [3 /*break*/, 4];
+                u = ur.get();
+                //user is verified
+                console.log("userresult at /record: ", ur);
+                user = new User_1.default(u);
+                return [4 /*yield*/, user.getRecordByDate(dateISO)];
+            case 3:
+                result = _a.sent();
+                return [2 /*return*/, res.json(result.get())];
+            case 4: throw Result_1.default.Failure(ErrorResponse_1.ERROR_RESPONSE.user.authException);
+            case 5:
+                error_3 = _a.sent();
+                return [2 /*return*/, res.json(error_3.get())];
+            case 6: return [2 /*return*/];
+        }
+    });
+}); });
 /*
     record > {
         d_id
@@ -153,11 +184,11 @@ data.get("/user/record", verifyAuthToken, function (req, res) { return __awaiter
 
 */
 data.post("/record", verifyAuthToken, function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var record, ur, u, user, result, error_3;
+    var record, ur, u, user, result, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
-                if (!req.body.record)
+                if (!req.body.record || !req.body.dateISO)
                     return [2 /*return*/, res.json(ErrorResponse_1.ERROR_RESPONSE.INVALID_REQUEST)];
                 record = __assign({}, req.body.record);
                 if (!Record_1.default.isValidRI(record))
@@ -174,20 +205,20 @@ data.post("/record", verifyAuthToken, function (req, res) { return __awaiter(voi
                 //user is verified
                 console.log("userresult at /record: ", ur);
                 user = new User_1.default(u);
-                return [4 /*yield*/, user.insertRecord(record)];
+                return [4 /*yield*/, user.insertRecord(record, dateISO)];
             case 3:
                 result = _a.sent();
                 return [2 /*return*/, res.json(result.get())];
             case 4: throw Result_1.default.Failure(ErrorResponse_1.ERROR_RESPONSE.user.authException);
             case 5:
-                error_3 = _a.sent();
-                return [2 /*return*/, res.json(error_3.get())];
+                error_4 = _a.sent();
+                return [2 /*return*/, res.json(error_4.get())];
             case 6: return [2 /*return*/];
         }
     });
 }); });
 data.get("/geohash", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, latitude, longitude, precision, result, error_4;
+    var _a, latitude, longitude, precision, result, error_5;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
@@ -202,24 +233,24 @@ data.get("/geohash", function (req, res) { return __awaiter(void 0, void 0, void
                 result = _b.sent();
                 return [2 /*return*/, res.json(result.get())];
             case 3:
-                error_4 = _b.sent();
-                return [2 /*return*/, res.json(error_4.get())];
+                error_5 = _b.sent();
+                return [2 /*return*/, res.json(error_5.get())];
             case 4: return [2 /*return*/];
         }
     });
 }); });
 data.get("/user/infection_probability", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
-    var _a, d_id, locationGeohash, result, error_5;
+    var _a, d_id, locationGeohash, result, error_6;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                if (!req.query.d_id || !req.query.locationGeohash)
+                if (!req.query.d_id || !req.query.locationGeohash || !req.query.symptoms)
                     return [2 /*return*/, res.json(ErrorResponse_1.ERROR_RESPONSE.INVALID_REQUEST)];
                 _b.label = 1;
             case 1:
                 _b.trys.push([1, 3, , 4]);
                 _a = req.query, d_id = _a.d_id, locationGeohash = _a.locationGeohash;
-                return [4 /*yield*/, Helper_1.default.processInfectionState(d_id, locationGeohash)];
+                return [4 /*yield*/, Helper_1.default.processInfectionState(d_id, locationGeohash, symptoms)];
             case 2:
                 result = _b.sent();
                 if (result) {
@@ -227,8 +258,8 @@ data.get("/user/infection_probability", function (req, res) { return __awaiter(v
                 }
                 return [3 /*break*/, 4];
             case 3:
-                error_5 = _b.sent();
-                return [2 /*return*/, res.json(error_5.get())];
+                error_6 = _b.sent();
+                return [2 /*return*/, res.json(error_6.get())];
             case 4: return [2 /*return*/];
         }
     });
