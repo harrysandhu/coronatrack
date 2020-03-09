@@ -199,6 +199,22 @@ data.post(
 
 
 
+data.get(
+    "/infection_state",
+    async (req:any, res:any) =>{
+        if(!req.query.locationGeohash)
+            return res.json(ERROR_RESPONSE.INVALID_REQUEST)
+        try{
+            let {locationGeohash} = req.query;
+            let result = <Result<any, Error>>await Helper.getLocationInfectionState(locationGeohash);
+            if(result)
+                return res.json(result.get())
+        }catch(error){
+            return res.json(error.get())
+        }
+    }
+)
+
 
 module.exports = data;
 

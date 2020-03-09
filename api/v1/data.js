@@ -239,17 +239,17 @@ data.get("/geohash", function (req, res) { return __awaiter(void 0, void 0, void
         }
     });
 }); });
-data.get("/user/infection_probability", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+data.post("/user/infection_probability", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
     var _a, d_id, locationGeohash, symptoms, result, error_6;
     return __generator(this, function (_b) {
         switch (_b.label) {
             case 0:
-                if (!req.query.d_id || !req.query.locationGeohash || !req.query.symptoms)
+                if (!req.body.d_id || !req.body.locationGeohash || !req.body.symptoms)
                     return [2 /*return*/, res.json(ErrorResponse_1.ERROR_RESPONSE.INVALID_REQUEST)];
                 _b.label = 1;
             case 1:
                 _b.trys.push([1, 3, , 4]);
-                _a = req.query, d_id = _a.d_id, locationGeohash = _a.locationGeohash, symptoms = _a.symptoms;
+                _a = req.body, d_id = _a.d_id, locationGeohash = _a.locationGeohash, symptoms = _a.symptoms;
                 return [4 /*yield*/, Helper_1.default.processInfectionState(d_id, locationGeohash, symptoms)];
             case 2:
                 result = _b.sent();
@@ -260,6 +260,30 @@ data.get("/user/infection_probability", function (req, res) { return __awaiter(v
             case 3:
                 error_6 = _b.sent();
                 return [2 /*return*/, res.json(error_6.get())];
+            case 4: return [2 /*return*/];
+        }
+    });
+}); });
+data.get("/infection_state", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var locationGeohash, result, error_7;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                if (!req.query.locationGeohash)
+                    return [2 /*return*/, res.json(ErrorResponse_1.ERROR_RESPONSE.INVALID_REQUEST)];
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 3, , 4]);
+                locationGeohash = req.query.locationGeohash;
+                return [4 /*yield*/, Helper_1.default.getLocationInfectionState(locationGeohash)];
+            case 2:
+                result = _a.sent();
+                if (result)
+                    return [2 /*return*/, res.json(result.get())];
+                return [3 /*break*/, 4];
+            case 3:
+                error_7 = _a.sent();
+                return [2 /*return*/, res.json(error_7.get())];
             case 4: return [2 /*return*/];
         }
     });

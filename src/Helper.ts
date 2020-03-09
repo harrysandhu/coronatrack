@@ -184,47 +184,37 @@ export default class Helper{
     }
  
 
-    // /**	
-    // * Checks and validates username.
-    // * @param {string} username - username to check
-    // */
-    // static async checkUsername(username:string)
-    // : Promise<Result<SResponse, Error>> 
-    // {
-    //     let fs = FS.UsernameSettings
-    //     if(!username)  return Promise.reject(Result.Failure(ERROR_RESPONSE.username.invalid))
-    //     //trim down spaces
-    //     username = username.trim().toLowerCase();
-    //     //check username length
-    //     if(
-    //         username.length < fs.minLength ||
-    //         username.length > fs.maxLength
-    //     ){
-    //         return Promise.reject(Result.Failure(ERROR_RESPONSE.username.length))
-    //     }else if(!fs.regex.test(username)){
-    //         return Promise.reject(Result.Failure(ERROR_RESPONSE.username.format))
-    //     }else{
-    //         const client = await longshot.connect();
-    //         try{
-    //             await client.query('BEGIN')
-    //             let queryText = 'SELECT username FROM user WHERE username=$1 UNION SELECT username from _business_user WHERE username=$1';
-    //             let result = await client.query(queryText, [username])
-    //             if(result.rows.length == 0){
-    //                 return Promise.resolve(Result.Success(RESPONSE.username.available))
-    //             }
-    //             else{
-    //                 return Promise.reject(Result.Failure((ERROR_RESPONSE.username.unavailable)))
-    //             }
-    //         }catch(err){
-    //             console.log(err.stack)
-    //             return Promise.reject(Result.Failure(ERROR_RESPONSE.username.unavailable))
-    //         }finally{
-    //             client.release();
-    //         }
-    //     }
-                            
-    // }
+   static async getLocationInfectionState(locationGeohash:string)
+    : Promise<Result<any, Error>> 
+    {  
+        let client = await longshot.connect();
+        try{
+            let results:any = [];
+            let ranges:any = [[85, 100], [60, 85], [30, 60], [0, 30]];
+            let queryText = "";
+            let inserts:any = []
+            //';
+            await client.query('BEGIN')
+            for(let i = 0; i < 4; i++){
+                queryText = "SELECT COUNT(*) FROM _infection WHERE EXTRACT(DAY FROM AGE(NOW(), at_datetime)) < 5 AND location_geohash LIKE "+ "\'" +locationGeohash+"%" + "\' AND infection_probability > $1 AND infection_probability <= $2 " ;
+                console.log("querytext: ", queryText)
+                inserts = ranges[i];
+                let res = await client.query(queryText, inserts);
+                results.push(...res.rows);
+            }
 
+            return Promise.resolve(Result.Success({results:results,success:true}))
+
+        }catch(error){
+                console.log(error)
+             return Promise.reject(Result.Failure(ERROR_RESPONSE.ERR_SYS))
+        }finally{
+            client.release();
+        }
+
+    }
+
+    
      
     /**	
     * Checks and validates email.
