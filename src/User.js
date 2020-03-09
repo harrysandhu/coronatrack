@@ -164,7 +164,7 @@ var User = /** @class */ (function () {
                     case 3:
                         _a.sent();
                         queryText = 'SELECT * from _record WHERE d_id=$1 AND' + ' '
-                            + 'DATE(record_datetime) = DATE($2)';
+                            + 'DATE(record_datetime) = DATE($2) ORDER BY record_datetime DESC LIMIT 1';
                         inserts = [this.d_id, dateISO];
                         return [4 /*yield*/, client.query(queryText, inserts)];
                     case 4:

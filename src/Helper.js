@@ -165,9 +165,10 @@ var Helper = /** @class */ (function () {
                     case 3:
                         _a.sent();
                         queryText = 'SELECT DISTINCT location_geohash, infection_probability, MIN(AGE(NOW(), at_datetime)) FROM _infection'
-                            + " " + 'WHERE EXTRACT(MINUTE FROM AGE(NOW(),at_datetime)) < 10'
+                            + " " + 'WHERE EXTRACT(MINUTE FROM AGE(NOW(),at_datetime)) < 10 AND d_id <> $9'
                             + " " + 'AND location_geohash IN($1, $2, $3, $4, $5, $6, $7, $8) GROUP BY location_geohash, infection_probability';
                         inserts = neighboursArr;
+                        inserts.push(d_id);
                         return [4 /*yield*/, client.query(queryText, inserts)];
                     case 4:
                         result = _a.sent();
