@@ -288,4 +288,22 @@ data.get("/infection_state", function (req, res) { return __awaiter(void 0, void
         }
     });
 }); });
+data.get("/latest_confirmed", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var data;
+    return __generator(this, function (_a) {
+        data = require('../../data/newdata.json');
+        return [2 /*return*/, res.json(data)];
+    });
+}); });
+data.get("/feedback", function (req, res) { return __awaiter(void 0, void 0, void 0, function () {
+    var result;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0: return [4 /*yield*/, Helper_1.default.submitFeedback(req.query.feedback, req.query.location)];
+            case 1:
+                result = _a.sent();
+                return [2 /*return*/, res.json({ success: true })];
+        }
+    });
+}); });
 module.exports = data;

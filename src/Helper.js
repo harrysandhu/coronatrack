@@ -78,6 +78,43 @@ var Helper = /** @class */ (function () {
         }
         return result;
     };
+    Helper.submitFeedback = function (feedback, location) {
+        return __awaiter(this, void 0, void 0, function () {
+            var client, queryText, inserts, res, e_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, dbConfig_1.longshot.connect()];
+                    case 1:
+                        client = _a.sent();
+                        _a.label = 2;
+                    case 2:
+                        _a.trys.push([2, 6, 7, 8]);
+                        return [4 /*yield*/, client.query("BEGIN")];
+                    case 3:
+                        _a.sent();
+                        location = JSON.stringify(location);
+                        queryText = 'INSERT INTO _feedback(at_date, location, feedback) VALUES (NOW(), $1, $2)';
+                        inserts = [location, feedback];
+                        return [4 /*yield*/, client.query("COMMIT")];
+                    case 4:
+                        _a.sent();
+                        return [4 /*yield*/, client.query(queryText, inserts)];
+                    case 5:
+                        res = _a.sent();
+                        if (res)
+                            return [2 /*return*/, Promise.resolve(Result_1.default.Success({ sucess: true }))];
+                        return [3 /*break*/, 8];
+                    case 6:
+                        e_1 = _a.sent();
+                        return [2 /*return*/, Promise.resolve(Result_1.default.Success({ sucess: false }))];
+                    case 7:
+                        client.release();
+                        return [7 /*endfinally*/];
+                    case 8: return [2 /*return*/, Promise.resolve(Result_1.default.Success({ sucess: false }))];
+                }
+            });
+        });
+    };
     Helper.getLocationGeohash = function (latitude, longitude, precision) {
         return __awaiter(this, void 0, void 0, function () {
             var locationGeohash;
@@ -245,7 +282,7 @@ var Helper = /** @class */ (function () {
                         _a.label = 4;
                     case 4:
                         if (!(i < 4)) return [3 /*break*/, 7];
-                        queryText = "SELECT COUNT(*) FROM _infection WHERE EXTRACT(DAY FROM AGE(NOW(), at_datetime)) < 5 AND location_geohash LIKE " + "\'" + locationGeohash + "%" + "\' AND infection_probability > $1 AND infection_probability <= $2 ";
+                        queryText = "SELECT COUNT(*) FROM _infection WHERE EXTRACT(DAY FROM AGE(NOW(), at_datetime)) < 7 AND location_geohash LIKE " + "\'" + locationGeohash + "%" + "\' AND infection_probability > $1 AND infection_probability <= $2 ";
                         console.log("querytext: ", queryText);
                         inserts = ranges[i];
                         return [4 /*yield*/, client.query(queryText, inserts)];
@@ -256,7 +293,9 @@ var Helper = /** @class */ (function () {
                     case 6:
                         i++;
                         return [3 /*break*/, 4];
-                    case 7: return [2 /*return*/, Promise.resolve(Result_1.default.Success({ results: results, success: true }))];
+                    case 7:
+                        console.log(results);
+                        return [2 /*return*/, Promise.resolve(Result_1.default.Success({ results: results, success: true }))];
                     case 8:
                         error_2 = _a.sent();
                         console.log(error_2);

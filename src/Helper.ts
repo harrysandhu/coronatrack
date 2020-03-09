@@ -46,6 +46,28 @@ export default class Helper{
     return result;
 
     }
+
+    static async submitFeedback(feedback:any, location:any)
+    : Promise<Result<any, Error>> 
+    {
+            const client = await longshot.connect()
+         try{
+            await client.query("BEGIN")
+            location = JSON.stringify(location)
+            let queryText = 'INSERT INTO _feedback(at_date, location, feedback) VALUES (NOW(), $1, $2)';
+            let inserts = [location, feedback];
+            await client.query("COMMIT");
+            let res = await client.query(queryText, inserts);
+           if(res)   return Promise.resolve(Result.Success({sucess:true}))
+         }catch(e){
+        return Promise.resolve(Result.Success({success:false}))
+         }finally{
+            client.release()
+        }
+
+         return Promise.resolve(Result.Success({success:false}))
+    }
+
     static async getLocationGeohash(latitude:number, longitude:number, precision:number )
     : Promise<Result<any, Error>> 
     {
@@ -196,7 +218,7 @@ export default class Helper{
             //';
             await client.query('BEGIN')
             for(let i = 0; i < 4; i++){
-                queryText = "SELECT COUNT(*) FROM _infection WHERE EXTRACT(DAY FROM AGE(NOW(), at_datetime)) < 5 AND location_geohash LIKE "+ "\'" +locationGeohash+"%" + "\' AND infection_probability > $1 AND infection_probability <= $2 " ;
+                queryText = "SELECT COUNT(*) FROM _infection WHERE EXTRACT(DAY FROM AGE(NOW(), at_datetime)) < 7 AND location_geohash LIKE "+ "\'" +locationGeohash+"%" + "\' AND infection_probability > $1 AND infection_probability <= $2 " ;
                 console.log("querytext: ", queryText)
                 inserts = ranges[i];
                 let res = await client.query(queryText, inserts);

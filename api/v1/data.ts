@@ -216,5 +216,22 @@ data.get(
 )
 
 
+data.get(
+    "/latest_confirmed",
+    async (req:any, res:any) =>{
+        let data = require('../../data/newdata.json')
+        return res.json(data);   
+    }
+)
+
+data.get(
+    "/feedback",
+    async (req:any, res:any) =>{
+        let result = <Result<any, Error>>await Helper.submitFeedback(req.query.feedback, req.query.location);
+        return res.json({success:true})
+    }
+)
+
+
 module.exports = data;
 
