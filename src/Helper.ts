@@ -202,7 +202,7 @@ export default class Helper{
                 let res = await client.query(queryText, inserts);
                 results.push(...res.rows);
             }
-
+            console.log(results)
             return Promise.resolve(Result.Success({results:results,success:true}))
 
         }catch(error){
