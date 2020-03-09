@@ -104,7 +104,7 @@ export default class User {
         try{
             await client.query('BEGIN')
             let queryText = 'SELECT * from _record WHERE d_id=$1 AND' + ' ' 
-                            +'DATE(record_datetime) = DATE($2)';
+                            +'DATE(record_datetime) = DATE($2) ORDER BY DESC LIMIT 1';
             let inserts = [this.d_id, dateISO]
             let result = await client.query(queryText, inserts)
             if(result.rows.length != 0){
