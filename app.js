@@ -54,6 +54,10 @@ app.get("/nosymptoms/privacy_policy", (req, res) =>{
 
 
 
+app.get("/ctlogo", (req, res) =>{
+    res.sendFile(path.join(__dirname, "/ctlogo.png"))
+})
+
 
 app.use("/media", media)
 //v2 development api
