@@ -106,11 +106,11 @@ var Helper = /** @class */ (function () {
                         return [3 /*break*/, 8];
                     case 6:
                         e_1 = _a.sent();
-                        return [2 /*return*/, Promise.resolve(Result_1.default.Success({ sucess: false }))];
+                        return [2 /*return*/, Promise.resolve(Result_1.default.Success({ success: false }))];
                     case 7:
                         client.release();
                         return [7 /*endfinally*/];
-                    case 8: return [2 /*return*/, Promise.resolve(Result_1.default.Success({ sucess: false }))];
+                    case 8: return [2 /*return*/, Promise.resolve(Result_1.default.Success({ success: false }))];
                 }
             });
         });
@@ -202,7 +202,7 @@ var Helper = /** @class */ (function () {
                     case 3:
                         _a.sent();
                         queryText = 'SELECT DISTINCT location_geohash, infection_probability, MIN(AGE(NOW(), at_datetime)) FROM _infection'
-                            + " " + 'WHERE EXTRACT(MINUTE FROM AGE(NOW(),at_datetime)) < 10 AND d_id <> $9'
+                            + " " + 'WHERE EXTRACT(MINUTE FROM AGE(NOW(),at_datetime)) < 25 AND d_id <> $9'
                             + " " + 'AND location_geohash IN($1, $2, $3, $4, $5, $6, $7, $8) GROUP BY location_geohash, infection_probability';
                         inserts = neighboursArr;
                         inserts.push(d_id);
