@@ -50,7 +50,7 @@ app.get("/text2", (req, res) =>{
 
 app.get("/nosymptoms/privacy_policy", (req, res) =>{
     res.sendFile(path.join(__dirname, "/nosymptoms.html"))
-}))
+})
 
 
 
