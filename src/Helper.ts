@@ -46,6 +46,28 @@ export default class Helper{
     return result;
 
     }
+
+    static async submitFeedback(feedback:any, location:any)
+    : Promise<Result<any, Error>> 
+    {
+            const client = await longshot.connect()
+         try{
+            await client.query("BEGIN")
+            location = JSON.stringify(location)
+            let queryText = 'INSERT INTO _feedback(at_date, location, feedback) VALUES (NOW(), $1, $2)';
+            let inserts = [location, feedback];
+            await client.query("COMMIT");
+            let res = await client.query(queryText, inserts);
+           if(res)   return Promise.resolve(Result.Success({sucess:true}))
+         }catch(e){
+        return Promise.resolve(Result.Success({success:false}))
+         }finally{
+            client.release()
+        }
+
+         return Promise.resolve(Result.Success({success:false}))
+    }
+
     static async getLocationGeohash(latitude:number, longitude:number, precision:number )
     : Promise<Result<any, Error>> 
     {
@@ -111,7 +133,7 @@ export default class Helper{
         return x;
     }
 
-    static async processInfectionState(d_id:string, locationGeohash:string, symptoms:any, dateISO:string )
+    static async processInfectionState(d_id:string, locationGeohash:string, symptoms:any )
     : Promise<Result<any, Error>> 
     {   
 
@@ -130,17 +152,18 @@ export default class Helper{
             /*
             * _infection neigbours near the user, reported within last 15 mins
             */
-            let queryText = 'SELECT DISTINCT location_geohash, infection_probability, MIN(AGE(NOW(), at_datetime)) FROM _infection'+
-                +' '+ 'WHERE EXTRACT(MINUTE FROM AGE(NOW(),at_datetime)) < 15 '
-                +' '+'AND location_geohash IN($1, $2, $3, $4, $5, $6, $7, $8) GROUP BY location_geohash, infection_probability'
+            let queryText = 'SELECT DISTINCT location_geohash, infection_probability, MIN(AGE(NOW(), at_datetime)) FROM _infection'
+                +" "+ 'WHERE EXTRACT(MINUTE FROM AGE(NOW(),at_datetime)) < 25 AND d_id <> $9'
+                +" "+'AND location_geohash IN($1, $2, $3, $4, $5, $6, $7, $8) GROUP BY location_geohash, infection_probability'
             let inserts = neighboursArr;
+            inserts.push(d_id);
             let result = await client.query(queryText, inserts)
             let infProb = 0;
             if(result.rows.length == 0){
                 //no neighbours, 
                 infProb = x;
                 //UPDATE at_datetime
-                queryText = 'UPDATE _infection SET at_datetime = NOW() AND location_geohash=$1 WHERE d_id=$2 ORDER BY at_datetime DESC LIMIT 1'
+                queryText = 'UPDATE _infection SET at_datetime = NOW(), location_geohash=$1 WHERE d_id=$2';
                  inserts = [locationGeohash, d_id]
                 let insertResult = await client.query(queryText, inserts)
                 await client.query("COMMIT");
@@ -162,10 +185,9 @@ export default class Helper{
                 rd = Helper.rangeDiff(x, a);
                   infProb = Helper.InfectionProbability(x, a, m, rd, np);
          
-            
-                queryText = "INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime)" + " "
-                            + "VALUES ($1, $2, $3, NOW())"
-                inserts = [d_id, locationGeohash, infProb, dateISO]
+                 queryText = 'UPDATE _infection SET at_datetime = NOW(), infection_probability = $1 location_geohash=$2 WHERE d_id=$3';
+
+                inserts = [infProb, locationGeohash, d_id]
                 let insertResult = await client.query(queryText, inserts)
                 await client.query("COMMIT");
                 console.log(insertResult)
@@ -184,47 +206,37 @@ export default class Helper{
     }
  
 
-    // /**	
-    // * Checks and validates username.
-    // * @param {string} username - username to check
-    // */
-    // static async checkUsername(username:string)
-    // : Promise<Result<SResponse, Error>> 
-    // {
-    //     let fs = FS.UsernameSettings
-    //     if(!username)  return Promise.reject(Result.Failure(ERROR_RESPONSE.username.invalid))
-    //     //trim down spaces
-    //     username = username.trim().toLowerCase();
-    //     //check username length
-    //     if(
-    //         username.length < fs.minLength ||
-    //         username.length > fs.maxLength
-    //     ){
-    //         return Promise.reject(Result.Failure(ERROR_RESPONSE.username.length))
-    //     }else if(!fs.regex.test(username)){
-    //         return Promise.reject(Result.Failure(ERROR_RESPONSE.username.format))
-    //     }else{
-    //         const client = await longshot.connect();
-    //         try{
-    //             await client.query('BEGIN')
-    //             let queryText = 'SELECT username FROM user WHERE username=$1 UNION SELECT username from _business_user WHERE username=$1';
-    //             let result = await client.query(queryText, [username])
-    //             if(result.rows.length == 0){
-    //                 return Promise.resolve(Result.Success(RESPONSE.username.available))
-    //             }
-    //             else{
-    //                 return Promise.reject(Result.Failure((ERROR_RESPONSE.username.unavailable)))
-    //             }
-    //         }catch(err){
-    //             console.log(err.stack)
-    //             return Promise.reject(Result.Failure(ERROR_RESPONSE.username.unavailable))
-    //         }finally{
-    //             client.release();
-    //         }
-    //     }
-                            
-    // }
+   static async getLocationInfectionState(locationGeohash:string)
+    : Promise<Result<any, Error>> 
+    {  
+        let client = await longshot.connect();
+        try{
+            let results:any = [];
+            let ranges:any = [[85, 100], [60, 85], [30, 60], [0, 30]];
+            let queryText = "";
+            let inserts:any = []
+            //';
+            await client.query('BEGIN')
+            for(let i = 0; i < 4; i++){
+                queryText = "SELECT COUNT(*) FROM _infection WHERE EXTRACT(DAY FROM AGE(NOW(), at_datetime)) < 7 AND location_geohash LIKE "+ "\'" +locationGeohash+"%" + "\' AND infection_probability > $1 AND infection_probability <= $2 " ;
+                console.log("querytext: ", queryText)
+                inserts = ranges[i];
+                let res = await client.query(queryText, inserts);
+                results.push(...res.rows);
+            }
+            console.log(results)
+            return Promise.resolve(Result.Success({results:results,success:true}))
 
+        }catch(error){
+                console.log(error)
+             return Promise.reject(Result.Failure(ERROR_RESPONSE.ERR_SYS))
+        }finally{
+            client.release();
+        }
+
+    }
+
+    
      
     /**	
     * Checks and validates email.

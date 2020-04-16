@@ -20,6 +20,10 @@ import Record from './Record'
 import {UserInterface, RecordInterface} from  './Interfaces/Interfaces'
 import {Gender} from './Gender'
 
+import {Weights} from './Weights' 
+var Geohash = require('ngeohash');
+import {SymptomState} from './SymptomState'
+
 
 export default class User {
 
@@ -100,7 +104,7 @@ export default class User {
         try{
             await client.query('BEGIN')
             let queryText = 'SELECT * from _record WHERE d_id=$1 AND' + ' ' 
-                            +'DATE(record_datetime) = DATE($2)';
+                            +'DATE(record_datetime) = DATE($2) ORDER BY record_datetime DESC LIMIT 1';
             let inserts = [this.d_id, dateISO]
             let result = await client.query(queryText, inserts)
             if(result.rows.length != 0){
@@ -146,26 +150,31 @@ export default class User {
         const client = await longshot.connect()
         try{
             await client.query('BEGIN')
-            let queryText = "INSERT INTO _record(record_datetime, d_id, location, symptoms) VALUES (TIMESTAMP '$1', $2, $3, $4)";
+            let queryText = "INSERT INTO _record(record_datetime, d_id, location, symptoms) VALUES ($1, $2, $3, $4)";
             let inserts = [dateISO, this.d_id, JSON.stringify(record.location), JSON.stringify(record.symptoms)]
             let res = await client.query(queryText, inserts)
               await client.query("COMMIT");
             console.log("RESULT AT INSERTRECORD: ", res)
             
+            let symptoms = record['symptoms']
             let x = 0;
              Object.keys(symptoms).map((symptom) =>{
             x += (symptoms[symptom]['state'] * Weights[symptom])
             })
+            
             let {latitude, longitude } = record.location.coords
             let precision = 9;
             let locationGeohash = Geohash.encode(latitude, longitude, precision);
+            console.log("wefan\n\scojkfisaduh\n\nzxjkfsiduxzcjnkn\n\ndscizxnjk")
 
-            queryText = "INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime)"
-                        ""  + "VALUES ($1, $2, $3, NOW() ";
-            inserts = [this.d_id, locationGeohash, x];
-            res = await client.query(queryText, inserts)
+            let queryText1 = 'UPDATE _infection SET at_datetime = NOW(), location_geohash=$1, infection_probability=$2 WHERE d_id = $3';
+            let inserts1 = [locationGeohash, x, this.d_id];
+            
+            // let queryText1 = 'INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime) VALUES ($1, $2, $3, NOW() )';
+
+            let res2 = await client.query(queryText1, inserts1)
              await client.query("COMMIT");
-            console.log("RESULT AT INSERT INFEC: ", res)
+            console.log("RESULT AT INSERT INFEC: ", res2)
             return Promise.resolve(Result.Success({record:record, success:true}))
         }catch(error){
             console.log("error at insertRecord: ", error)
@@ -241,17 +250,28 @@ export default class User {
         const client = await longshot.connect();
 
         try{
+
+            let {latitude, longitude } = this.location;
+            let precision = 9;
+            let locationGeohash = Geohash.encode(latitude, longitude, precision);
+            let infection_probability = 0;
+
+
             await client.query("BEGIN")
             let queryText = {
                 user: 'INSERT INTO _user(d_id, u_id, age, gender, location_is_allowed, location, signup_datetime)' + ' '+
-                        'VALUES ($1, $2, $3, $4, $5, $6, NOW())'
+                        'VALUES ($1, $2, $3, $4, $5, $6, NOW())',
+                infection:  'INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime) VALUES ($1, $2, $3, NOW() )'
             }
 
+
             let inserts = {
-                user: this.toarray()
+                user: this.toarray(),
+                infection: [this.d_id, locationGeohash, infection_probability]
             }
 
             let insertRes = await client.query(queryText.user, inserts.user)
+            let insertRes2 = await client.query(queryText.infection, inserts.infection)
             await client.query("COMMIT");
             
             let userPayload = this.repr();

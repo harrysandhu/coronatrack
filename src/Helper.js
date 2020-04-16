@@ -78,6 +78,43 @@ var Helper = /** @class */ (function () {
         }
         return result;
     };
+    Helper.submitFeedback = function (feedback, location) {
+        return __awaiter(this, void 0, void 0, function () {
+            var client, queryText, inserts, res, e_1;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, dbConfig_1.longshot.connect()];
+                    case 1:
+                        client = _a.sent();
+                        _a.label = 2;
+                    case 2:
+                        _a.trys.push([2, 6, 7, 8]);
+                        return [4 /*yield*/, client.query("BEGIN")];
+                    case 3:
+                        _a.sent();
+                        location = JSON.stringify(location);
+                        queryText = 'INSERT INTO _feedback(at_date, location, feedback) VALUES (NOW(), $1, $2)';
+                        inserts = [location, feedback];
+                        return [4 /*yield*/, client.query("COMMIT")];
+                    case 4:
+                        _a.sent();
+                        return [4 /*yield*/, client.query(queryText, inserts)];
+                    case 5:
+                        res = _a.sent();
+                        if (res)
+                            return [2 /*return*/, Promise.resolve(Result_1.default.Success({ sucess: true }))];
+                        return [3 /*break*/, 8];
+                    case 6:
+                        e_1 = _a.sent();
+                        return [2 /*return*/, Promise.resolve(Result_1.default.Success({ success: false }))];
+                    case 7:
+                        client.release();
+                        return [7 /*endfinally*/];
+                    case 8: return [2 /*return*/, Promise.resolve(Result_1.default.Success({ success: false }))];
+                }
+            });
+        });
+    };
     Helper.getLocationGeohash = function (latitude, longitude, precision) {
         return __awaiter(this, void 0, void 0, function () {
             var locationGeohash;
@@ -140,7 +177,7 @@ var Helper = /** @class */ (function () {
         }
         return x;
     };
-    Helper.processInfectionState = function (d_id, locationGeohash, symptoms, dateISO) {
+    Helper.processInfectionState = function (d_id, locationGeohash, symptoms) {
         return __awaiter(this, void 0, void 0, function () {
             var client, x_1, a, m, rd, neighboursArr, np, queryText, inserts, result, infProb, insertResult, i, sum_np, i, insertResult, error_1;
             return __generator(this, function (_a) {
@@ -164,10 +201,11 @@ var Helper = /** @class */ (function () {
                         ];
                     case 3:
                         _a.sent();
-                        queryText = 'SELECT DISTINCT location_geohash, infection_probability, MIN(AGE(NOW(), at_datetime)) FROM _infection' +
-                            +' ' + 'WHERE EXTRACT(MINUTE FROM AGE(NOW(),at_datetime)) < 15 '
-                            + ' ' + 'AND location_geohash IN($1, $2, $3, $4, $5, $6, $7, $8) GROUP BY location_geohash, infection_probability';
+                        queryText = 'SELECT DISTINCT location_geohash, infection_probability, MIN(AGE(NOW(), at_datetime)) FROM _infection'
+                            + " " + 'WHERE EXTRACT(MINUTE FROM AGE(NOW(),at_datetime)) < 25 AND d_id <> $9'
+                            + " " + 'AND location_geohash IN($1, $2, $3, $4, $5, $6, $7, $8) GROUP BY location_geohash, infection_probability';
                         inserts = neighboursArr;
+                        inserts.push(d_id);
                         return [4 /*yield*/, client.query(queryText, inserts)];
                     case 4:
                         result = _a.sent();
@@ -176,7 +214,7 @@ var Helper = /** @class */ (function () {
                         //no neighbours, 
                         infProb = x_1;
                         //UPDATE at_datetime
-                        queryText = 'UPDATE _infection SET at_datetime = NOW() AND location_geohash=$1 WHERE d_id=$2 ORDER BY at_datetime DESC LIMIT 1';
+                        queryText = 'UPDATE _infection SET at_datetime = NOW(), location_geohash=$1 WHERE d_id=$2';
                         inserts = [locationGeohash, d_id];
                         return [4 /*yield*/, client.query(queryText, inserts)];
                     case 5:
@@ -197,9 +235,8 @@ var Helper = /** @class */ (function () {
                         a = (x_1 + sum_np) / (np.length + 1);
                         rd = Helper.rangeDiff(x_1, a);
                         infProb = Helper.InfectionProbability(x_1, a, m, rd, np);
-                        queryText = "INSERT INTO _infection(d_id, location_geohash, infection_probability, at_datetime)" + " "
-                            + "VALUES ($1, $2, $3, NOW())";
-                        inserts = [d_id, locationGeohash, infProb, dateISO];
+                        queryText = 'UPDATE _infection SET at_datetime = NOW(), infection_probability = $1 location_geohash=$2 WHERE d_id=$3';
+                        inserts = [infProb, locationGeohash, d_id];
                         return [4 /*yield*/, client.query(queryText, inserts)];
                     case 8:
                         insertResult = _a.sent();
@@ -221,45 +258,56 @@ var Helper = /** @class */ (function () {
             });
         });
     };
-    // /**	
-    // * Checks and validates username.
-    // * @param {string} username - username to check
-    // */
-    // static async checkUsername(username:string)
-    // : Promise<Result<SResponse, Error>> 
-    // {
-    //     let fs = FS.UsernameSettings
-    //     if(!username)  return Promise.reject(Result.Failure(ERROR_RESPONSE.username.invalid))
-    //     //trim down spaces
-    //     username = username.trim().toLowerCase();
-    //     //check username length
-    //     if(
-    //         username.length < fs.minLength ||
-    //         username.length > fs.maxLength
-    //     ){
-    //         return Promise.reject(Result.Failure(ERROR_RESPONSE.username.length))
-    //     }else if(!fs.regex.test(username)){
-    //         return Promise.reject(Result.Failure(ERROR_RESPONSE.username.format))
-    //     }else{
-    //         const client = await longshot.connect();
-    //         try{
-    //             await client.query('BEGIN')
-    //             let queryText = 'SELECT username FROM user WHERE username=$1 UNION SELECT username from _business_user WHERE username=$1';
-    //             let result = await client.query(queryText, [username])
-    //             if(result.rows.length == 0){
-    //                 return Promise.resolve(Result.Success(RESPONSE.username.available))
-    //             }
-    //             else{
-    //                 return Promise.reject(Result.Failure((ERROR_RESPONSE.username.unavailable)))
-    //             }
-    //         }catch(err){
-    //             console.log(err.stack)
-    //             return Promise.reject(Result.Failure(ERROR_RESPONSE.username.unavailable))
-    //         }finally{
-    //             client.release();
-    //         }
-    //     }
-    // }
+    Helper.getLocationInfectionState = function (locationGeohash) {
+        return __awaiter(this, void 0, void 0, function () {
+            var client, results, ranges, queryText, inserts, i, res, error_2;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0: return [4 /*yield*/, dbConfig_1.longshot.connect()];
+                    case 1:
+                        client = _a.sent();
+                        _a.label = 2;
+                    case 2:
+                        _a.trys.push([2, 8, 9, 10]);
+                        results = [];
+                        ranges = [[85, 100], [60, 85], [30, 60], [0, 30]];
+                        queryText = "";
+                        inserts = [];
+                        //';
+                        return [4 /*yield*/, client.query('BEGIN')];
+                    case 3:
+                        //';
+                        _a.sent();
+                        i = 0;
+                        _a.label = 4;
+                    case 4:
+                        if (!(i < 4)) return [3 /*break*/, 7];
+                        queryText = "SELECT COUNT(*) FROM _infection WHERE EXTRACT(DAY FROM AGE(NOW(), at_datetime)) < 7 AND location_geohash LIKE " + "\'" + locationGeohash + "%" + "\' AND infection_probability > $1 AND infection_probability <= $2 ";
+                        console.log("querytext: ", queryText);
+                        inserts = ranges[i];
+                        return [4 /*yield*/, client.query(queryText, inserts)];
+                    case 5:
+                        res = _a.sent();
+                        results.push.apply(results, res.rows);
+                        _a.label = 6;
+                    case 6:
+                        i++;
+                        return [3 /*break*/, 4];
+                    case 7:
+                        console.log(results);
+                        return [2 /*return*/, Promise.resolve(Result_1.default.Success({ results: results, success: true }))];
+                    case 8:
+                        error_2 = _a.sent();
+                        console.log(error_2);
+                        return [2 /*return*/, Promise.reject(Result_1.default.Failure(ErrorResponse_1.ERROR_RESPONSE.ERR_SYS))];
+                    case 9:
+                        client.release();
+                        return [7 /*endfinally*/];
+                    case 10: return [2 /*return*/];
+                }
+            });
+        });
+    };
     /**
     * Checks and validates email.
     * @param {string} email - email to check.

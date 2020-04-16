@@ -114,7 +114,7 @@ data.get(
                     //user is verified
                     console.log("userresult at /record: ", ur)
                     let user = new User(u);
-                    let result = <Result<any, Error>>await user.getRecordByDate(dateISO);
+                    let result = <Result<any, Error>>await user.getRecordByDate(req.query.dateISO);
                     return res.json(result.get())
                 }
                 throw Result.Failure(ERROR_RESPONSE.user.authException)
@@ -154,7 +154,7 @@ data.post(
                     //user is verified
                     console.log("userresult at /record: ", ur)
                     let user = new User(u);
-                    let result = <Result<any, Error>>await user.insertRecord(record, dateISO)
+                    let result = <Result<any, Error>>await user.insertRecord(record, req.body.dateISO)
                     return res.json(result.get())
                   
                 }
@@ -180,13 +180,13 @@ data.get("/geohash",
     }
  )
 
-data.get(
+data.post(
     "/user/infection_probability",
     async (req:any, res:any) =>{
-        if(!req.query.d_id || !req.query.locationGeohash || !req.query.symptoms) 
+        if(!req.body.d_id || !req.body.locationGeohash || !req.body.symptoms) 
         return res.json(ERROR_RESPONSE.INVALID_REQUEST);
         try{
-            let {d_id, locationGeohash} = req.query
+            let {d_id, locationGeohash, symptoms} = req.body
         let result = <Result<any, Error>>await Helper.processInfectionState(d_id, locationGeohash, symptoms)
         if(result){
             return res.json(result.get());
@@ -198,6 +198,39 @@ data.get(
 )
 
 
+
+data.get(
+    "/infection_state",
+    async (req:any, res:any) =>{
+        if(!req.query.locationGeohash)
+            return res.json(ERROR_RESPONSE.INVALID_REQUEST)
+        try{
+            let {locationGeohash} = req.query;
+            let result = <Result<any, Error>>await Helper.getLocationInfectionState(locationGeohash);
+            if(result)
+                return res.json(result.get())
+        }catch(error){
+            return res.json(error.get())
+        }
+    }
+)
+
+
+data.get(
+    "/latest_confirmed",
+    async (req:any, res:any) =>{
+        let data = require('../../data/newdata.json')
+        return res.json(data);   
+    }
+)
+
+data.get(
+    "/feedback",
+    async (req:any, res:any) =>{
+        let result = <Result<any, Error>>await Helper.submitFeedback(req.query.feedback, req.query.location);
+        return res.json({success:true})
+    }
+)
 
 
 module.exports = data;

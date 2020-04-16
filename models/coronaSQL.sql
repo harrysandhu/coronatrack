@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS _user(
 
 
 CREATE TABLE IF NOT EXISTS _record(
-    record_datetime DATE NOT NULL,
+    record_datetime timestamp NOT NULL,
     d_id VARCHAR(100) NOT NULL,
     location jsonb,
     symptoms jsonb,
@@ -22,12 +22,25 @@ CREATE TABLE IF NOT EXISTS _record(
 
 
 
-CREATE TABLE IF NOT EXISTS _infection_location(
-    d_id VARCHAR(100) NOT NULL,
-    location jsonb,
+
+CREATE TABLE IF NOT EXISTS _infection(
+    d_id VARCHAR(100) NOT NULL UNIQUE,
+    location_geohash VARCHAR(12) NOT NULL,
     infection_probability NUMERIC(5, 2) NOT NULL DEFAULT 0,
-    atDatetime timestamp NOT NULL,
-    CONSTRAINT pk_infection PRIMARY KEY(d_id, location, atDatetime),
+    at_datetime timestamp NOT NULL,
+    CONSTRAINT pk_inf PRIMARY KEY(d_id),
     CONSTRAINT userfk FOREIGN KEY(d_id) REFERENCES _user(d_id)
 );
+
+
+CREATE TABLE IF NOT EXISTS _feedback(
+    at_date timestamp,
+    location jsonb,
+    feedback text NOT NULL
+);
+
+
+
+
+
 
