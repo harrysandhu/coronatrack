@@ -1,4 +1,5 @@
 import {Pool, Client} from 'pg';
+import fs from 'fs'
 
 let connections = {
     firestar : 'host=firestar.postgres.database.azure.com port=5432 dbname=hasettDev user=firestar_user@firestar password=@./%_1ab@psql1 sslmode=require'
@@ -18,48 +19,20 @@ export const firepool = new Pool({
 
 export const longshot = new Pool({
     user: "longshot69",
-    password: "mi1dsas4dp92zzv2",
-    host: "longshot-cluster-do-user-1754324-0.b.db.ondigitalocean.com",
-    port: 25060,
-    database: "longshotdevdb"
+    password: "Harry1032.",
+    host: "longshot1.caxc13yttpfm.us-east-2.rds.amazonaws.com",
+    port: 5432,
+    database: "longshotdb",
+    ssl: true,
+    idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 2000,
 })
 
-// export const longshot = new Pool({
-//     user: "longshot420",
-//     password: "YkqW8ThBtNOlqRAUv2eW",
-//     host: "longshot-dev-db.c8nz7hvudrch.us-west-2.rds.amazonaws.com",
-//     port: 5230,
-//     database: "longshotdevdb"
-// })
 
-//  postgresql://longshot420:YkqW8ThBtNOlqRAUv2eW@longshot-dev-db.c8nz7hvudrch.us-west-2.rds.amazonaws.com:5230/longshotdevdb
-
-
-//postgresql://harryxsandhu:gxbxmfy039gdph44@firestore-x-1-do-user-1754324-0.db.ondigitalocean.com:25060/firestoredb?sslmode=require
-
-
-// // get latest timehash and create after every 60 mins
-// export var timelong = 2;
-
-
-// getTimeHash();
-
-
-// export async function getTimeHash(){
-//     setTimeout(() => {
-//        timelong = timelong + 3;
-//        console.log(timelong);
-//     }, 300);
-// }
-
-
-
-
-//
-async function x(username:string, uId?:string){
- if(uId){
+async function xs(username:string, uId?:string){
+ try{
     const client = await longshot.connect();
-
+    console.log("tyooo")
         try{
             await client.query('BEGIN')
             const queryText = 'SELECT current_date'
@@ -72,10 +45,13 @@ async function x(username:string, uId?:string){
         }finally{
             client.release()
         }
-    }else console.log("he")
+    }catch(e){
+        console.log(e)
+    }
 }
 
-
+console.log("helo")
+xs("saf", "fsa")
 
 
 /*

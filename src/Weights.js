@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.Weights = void 0;
 exports.Weights = {
     fever: 12.5,
     cold: 15,

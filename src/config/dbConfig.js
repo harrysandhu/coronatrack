@@ -36,6 +36,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
     }
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.longshot = exports.firepool = void 0;
 var pg_1 = require("pg");
 var connections = {
     firestar: 'host=firestar.postgres.database.azure.com port=5432 dbname=hasettDev user=firestar_user@firestar password=@./%_1ab@psql1 sslmode=require'
@@ -49,34 +50,26 @@ exports.firepool = new pg_1.Pool({
     ssl: true
 });
 exports.longshot = new pg_1.Pool({
-    user: "longshot420",
-    password: "YkqW8ThBtNOlqRAUv2eW",
-    host: "longshot-dev-db.c8nz7hvudrch.us-west-2.rds.amazonaws.com",
-    port: 5230,
-    database: "longshotdevdb"
+    user: "longshot69",
+    password: "Harry1032.",
+    host: "longshot1.caxc13yttpfm.us-east-2.rds.amazonaws.com",
+    port: 5432,
+    database: "longshotdb",
+    ssl: true,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 2000,
 });
-//  postgresql://longshot420:YkqW8ThBtNOlqRAUv2eW@longshot-dev-db.c8nz7hvudrch.us-west-2.rds.amazonaws.com:5230/longshotdevdb
-//postgresql://harryxsandhu:gxbxmfy039gdph44@firestore-x-1-do-user-1754324-0.db.ondigitalocean.com:25060/firestoredb?sslmode=require
-// // get latest timehash and create after every 60 mins
-// export var timelong = 2;
-// getTimeHash();
-// export async function getTimeHash(){
-//     setTimeout(() => {
-//        timelong = timelong + 3;
-//        console.log(timelong);
-//     }, 300);
-// }
-//
-function x(username, uId) {
+function xs(username, uId) {
     return __awaiter(this, void 0, void 0, function () {
-        var client, queryText, res, e_1;
+        var client, queryText, res, e_1, e_2;
         return __generator(this, function (_a) {
             switch (_a.label) {
                 case 0:
-                    if (!uId) return [3 /*break*/, 9];
+                    _a.trys.push([0, 9, , 10]);
                     return [4 /*yield*/, exports.longshot.connect()];
                 case 1:
                     client = _a.sent();
+                    console.log("tyooo");
                     _a.label = 2;
                 case 2:
                     _a.trys.push([2, 5, 7, 8]);
@@ -104,13 +97,16 @@ function x(username, uId) {
                     return [7 /*endfinally*/];
                 case 8: return [3 /*break*/, 10];
                 case 9:
-                    console.log("he");
-                    _a.label = 10;
+                    e_2 = _a.sent();
+                    console.log(e_2);
+                    return [3 /*break*/, 10];
                 case 10: return [2 /*return*/];
             }
         });
     });
 }
+console.log("helo");
+xs("saf", "fsa");
 /*
 
 // user's personal account
@@ -163,4 +159,4 @@ function x(username, uId) {
    
 
 
- */ 
+ */

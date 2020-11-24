@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.PhoneNumberSettings = exports.CategorySettings = exports.PasswordSettings = exports.EmailSettings = exports.UsernameSettings = void 0;
 exports.UsernameSettings = {
     name: "username",
     minLength: 3,

@@ -1,5 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.ERROR_RESPONSE = void 0;
 exports.ERROR_RESPONSE = {
     INVALID_REQUEST: {
         message: "Invalid Request.",
