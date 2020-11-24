@@ -20,7 +20,7 @@ export const longshot = new Pool({
     user: "longshot69",
     password: "mi1dsas4dp92zzv2",
     host: "longshot-cluster-do-user-1754324-0.b.db.ondigitalocean.com",
-    port: 5230,
+    port: 25060,
     database: "longshotdevdb"
 })
 
@@ -134,5 +134,3 @@ async function x(username:string, uId?:string){
  
   */
 
-
- postgresql://longshot420:YkqW8ThBtNOlqRAUv2eW@longshot-dev-db.c8nz7hvudrch.us-west-2.rds.amazonaws.com:5230/longshotdevdb
