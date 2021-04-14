@@ -1,4 +1,4 @@
-## Infection Probability-Based Contract Tracing
+## Infection Probability-Based Contact Tracing
 
  
 ### Implements a generalized algorithm for infection probability based contact tracing for COVID-19.
