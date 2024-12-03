@@ -41,7 +41,7 @@
     "mysql": "^2.17.1",
     "ngeohash": "^0.6.3",
     "pg": "^8.5.1",
-    "socket.io": "^2.2.0",
+    "socket.io": "^2.4.0",
     "ts-node": "^9.0.0"
   },
   "devDependencies": {
